@@ -499,7 +499,7 @@ export default function CartSheet({
                         <div className="text-center space-y-2">
                           <h3 className="text-2xl font-black text-[#3E2723] tracking-tight">¡Pedido Confirmado!</h3>
                           <p className="text-[#A87B6A] font-semibold text-sm leading-relaxed px-4">
-                            Tu pedido fue registrado exitosamente.<br />El equipo de <strong className="text-[#8A3A25]">El Hornerito</strong> te contactará por Whatsapp para la entrega.
+                            Tu pedido fue registrado exitosamente.<br />El equipo de <strong className="text-[#8A3A25]">El Hornerito</strong> te contactará por Whatsapp para {lastOrderDeliveryMethod === 'pickup' ? 'el retiro' : 'la entrega'}.
                           </p>
                         </div>
 
@@ -510,7 +510,7 @@ export default function CartSheet({
                             className="w-full h-[60px] bg-[#25D366] text-white font-black text-[15px] uppercase tracking-widest rounded-[22px] flex items-center justify-center gap-3 shadow-[0_6px_20px_rgba(37,211,102,0.3)]"
                           >
                             <MessageCircle className="w-5 h-5" />
-                            Coordinar Entrega
+                            Coordinar {lastOrderDeliveryMethod === 'pickup' ? 'Retiro' : 'Entrega'}
                           </motion.button>
 
                           <motion.button
@@ -538,13 +538,15 @@ export default function CartSheet({
                       >
                         <div className="text-center space-y-1">
                           <h4 className="text-xl font-black text-[#3E2723]">Coordinar Logística</h4>
-                          <p className="text-sm font-semibold text-[#A87B6A]">¿Cuándo enviamos tu pedido?</p>
+                          <p className="text-sm font-semibold text-[#A87B6A]">
+                            {lastOrderDeliveryMethod === 'pickup' ? '¿Cuándo retirás tu pedido?' : '¿Cuándo enviamos tu pedido?'}
+                          </p>
                         </div>
 
                         <div className="space-y-4">
                           <div className="space-y-1.5">
                             <label className="text-[11px] font-black uppercase tracking-widest text-[#8A3A25] pl-1 flex items-center gap-2">
-                              <Calendar className="w-3.5 h-3.5" /> Día de entrega
+                              <Calendar className="w-3.5 h-3.5" /> Día de {lastOrderDeliveryMethod === 'pickup' ? 'retiro' : 'entrega'}
                             </label>
                             <input
                               type="date"
