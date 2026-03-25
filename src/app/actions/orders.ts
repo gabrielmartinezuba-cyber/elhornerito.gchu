@@ -32,17 +32,16 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
   // 1. Insertar la orden principal
   const { data: order, error: orderError } = await supabase
     .from('orders')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .insert({
       customer_name: customerName.trim(),
       customer_phone: customerPhone.trim(),
       customer_email: '',
       total_amount: total,
-      status: 'paid',
+      status: 'paid' as const,
       mp_preference_id: null,
       mp_payment_id: null,
       mp_merchant_order_id: null,
-    } as any)
+    })
     .select('id')
     .single()
 
@@ -50,11 +49,9 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
     return { success: false, error: `Error al crear la orden: ${orderError?.message}` }
   }
 
-  const orderId = (order as unknown as { id: string }).id
-
   // 2. Insertar los order_items
   const orderItems = items.map((item) => ({
-    order_id: orderId,
+    order_id: order.id,
     product_id: item.product.id,
     product_name: item.product.name,
     quantity: item.quantity,
@@ -63,19 +60,18 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
 
   const { error: itemsError } = await supabase
     .from('order_items')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .insert(orderItems as any)
+    .insert(orderItems)
 
   if (itemsError) {
     // Rollback: eliminar la orden huérfana
-    await supabase.from('orders').delete().eq('id', orderId)
+    await supabase.from('orders').delete().eq('id', order.id)
     return { success: false, error: `Error al guardar productos: ${itemsError.message}` }
   }
 
   revalidatePath('/admin')
   revalidatePath('/admin/orders')
 
-  return { success: true, orderId }
+  return { success: true, orderId: order.id }
 }
 
 export async function markOrderDelivered(orderId: string): Promise<{ success: boolean; error?: string }> {
@@ -83,8 +79,7 @@ export async function markOrderDelivered(orderId: string): Promise<{ success: bo
 
   const { error } = await supabase
     .from('orders')
-    // @ts-ignore
-    .update({ status: 'delivered' })
+    .update({ status: 'delivered' as const })
     .eq('id', orderId)
 
   if (error) return { success: false, error: error.message }
