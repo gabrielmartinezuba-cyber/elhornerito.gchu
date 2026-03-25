@@ -102,12 +102,7 @@ export default function SettingsPage() {
           </div>
         </motion.div>
 
-        {/* Business Intel Placeholder? Or status? */}
-        <div className="p-4 bg-[#3E2723]/5 border-2 border-dashed border-[#DBC8B6] rounded-2xl text-center">
-          <p className="text-[10px] font-bold text-[#A87B6A] uppercase tracking-widest">
-            Próximamente: Gestión de Horarios de Atención
-          </p>
-        </div>
+
       </div>
 
       {/* Floating Save Button */}
