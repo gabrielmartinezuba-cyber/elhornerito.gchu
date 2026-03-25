@@ -83,8 +83,8 @@ export async function markOrderDelivered(orderId: string): Promise<{ success: bo
 
   const { error } = await supabase
     .from('orders')
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .update({ status: 'delivered' } as any)
+    // @ts-ignore
+    .update({ status: 'delivered' })
     .eq('id', orderId)
 
   if (error) return { success: false, error: error.message }
