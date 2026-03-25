@@ -140,3 +140,61 @@ export async function markOrderDelivered(orderId: string): Promise<{ success: bo
 
   return { success: true }
 }
+
+export async function cancelOrder(orderId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const supabase = await createClient()
+
+    // 1. Obtener items de la orden para saber qué devolver
+    const { data: items, error: itemsError } = await supabase
+      .from('order_items')
+      .select('product_id, quantity')
+      .eq('order_id', orderId)
+
+    if (itemsError) throw new Error("No se pudieron obtener los productos de la orden.")
+
+    // 2. Devolver stock a cada producto
+    if (items && items.length > 0) {
+      for (const item of items) {
+        // Obtenemos stock actual (esto podría fallar en condiciones de carrera pesadas, 
+        // pero para este alcance es aceptable o usaríamos una función RPC)
+        const { data: prod } = await supabase
+          .from('products')
+          .select('stock_quantity')
+          .eq('id', item.product_id)
+          .single()
+
+        if (prod) {
+          const newStock = Number(prod.stock_quantity) + Number(item.quantity)
+          await supabase
+            .from('products')
+            .update({ 
+              stock_quantity: newStock,
+              in_stock: true 
+            })
+            .eq('id', item.product_id)
+        }
+      }
+    }
+
+    // 3. Eliminar la orden (order_items se eliminan por On Delete Cascade si está configurado, 
+    // pero lo hacemos manual por seguridad si no lo está)
+    await supabase.from('order_items').delete().eq('order_id', orderId)
+    const { error: deleteError } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', orderId)
+
+    if (deleteError) throw new Error(deleteError.message)
+
+    revalidatePath('/admin')
+    revalidatePath('/') 
+    revalidatePath('/admin/orders')
+
+    return { success: true }
+  } catch (err: any) {
+    console.error("CancelOrder Error:", err)
+    return { success: false, error: err.message || "Error al cancelar la orden." }
+  }
+}
+

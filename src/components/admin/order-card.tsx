@@ -2,8 +2,8 @@
 
 import { useTransition, useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { MessageCircle, CheckCheck, Loader2 } from "lucide-react"
-import { markOrderDelivered } from "@/app/actions/orders"
+import { MessageCircle, CheckCheck, Loader2, XCircle } from "lucide-react"
+import { markOrderDelivered, cancelOrder } from "@/app/actions/orders"
 import { Order, OrderItem } from "@/types/database"
 
 type OrderItemWithName = OrderItem & { product_name: string }
@@ -46,6 +46,16 @@ export function OrderCard({ order, onDelivered, showActions = true }: OrderCardP
       const result = await markOrderDelivered(order.id)
       if (result.success) onDelivered?.(order.id)
     })
+  }
+
+  const handleCancel = () => {
+    if (window.confirm("¿Seguro querés cancelar esta orden? Esta acción no se puede deshacer y el stock será devuelto al catálogo.")) {
+      startTransition(async () => {
+        const result = await cancelOrder(order.id)
+        if (result.success) onDelivered?.(order.id) // Re-usamos onDelivered para quitar de la lista
+        else alert(result.error)
+      })
+    }
   }
 
   const isDelivered = order.status === 'delivered'
@@ -115,6 +125,16 @@ export function OrderCard({ order, onDelivered, showActions = true }: OrderCardP
             <MessageCircle className="w-5 h-5 stroke-[2.5]" />
             WhatsApp
           </a>
+
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={handleCancel}
+            disabled={isPending}
+            className="flex-1 h-12 border-2 border-red-100 bg-red-50 text-red-600 rounded-[16px] flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider active:scale-95 transition-all disabled:opacity-50"
+          >
+            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 stroke-[2.5]" />}
+            Cancelar
+          </motion.button>
 
           <motion.button
             whileTap={{ scale: 0.95 }}
