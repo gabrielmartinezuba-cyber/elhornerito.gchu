@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ShoppingBag, X, Trash2, Plus, Minus, Loader2, CheckCircle2, Phone, User, AlertCircle, FileText } from "lucide-react"
+import { ShoppingBag, X, Trash2, Plus, Minus, Loader2, CheckCircle2, Phone, User, AlertCircle, FileText, CreditCard, Banknote, Calendar, Clock, MessageCircle } from "lucide-react"
 import { useCartStore } from "@/store/cartStore"
 import { placeOrder } from "@/app/actions/orders"
 import jsPDF from "jspdf"
@@ -18,10 +18,16 @@ export default function CartSheet() {
   // Checkout form
   const [customerName, setCustomerName] = useState("")
   const [customerPhone, setCustomerPhone] = useState("")
+  const [paymentMethod, setPaymentMethod] = useState<"mercadopago" | "cash">("mercadopago")
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
-  
-  // Guardar copia de items al comprar para el PDF
+
+  // Logística/WhatsApp success state
+  const [showCoordination, setShowCoordination] = useState(false)
+  const [deliveryDate, setDeliveryDate] = useState("")
+  const [deliveryTime, setDeliveryTime] = useState("")
+
+  // Guardar copia de items al comprar para el PDF y WA
   const [lastOrderItems, setLastOrderItems] = useState<any[]>([])
   const [lastOrderTotal, setLastOrderTotal] = useState(0)
 
@@ -40,7 +46,13 @@ export default function CartSheet() {
   const handleClose = () => {
     setIsOpen(false)
     // Reset to cart step after animation
-    setTimeout(() => { setStep("cart"); setErrorMsg(null) }, 400)
+    setTimeout(() => {
+      setStep("cart")
+      setErrorMsg(null)
+      setShowCoordination(false)
+      setDeliveryDate("")
+      setDeliveryTime("")
+    }, 400)
   }
 
   const handleSimulateOrder = async () => {
@@ -51,11 +63,16 @@ export default function CartSheet() {
     setLoading(true)
     setErrorMsg(null)
 
+    // Seteamos estado de pago según método
+    const paymentStatus = paymentMethod === 'mercadopago' ? 'paid' : 'pending'
+
     const result = await placeOrder({
       customerName,
       customerPhone,
       items,
       total,
+      paymentMethod,
+      paymentStatus
     })
 
     setLoading(false)
@@ -70,6 +87,20 @@ export default function CartSheet() {
     }
   }
 
+  const handleWhatsAppContact = () => {
+    if (!deliveryDate || !deliveryTime) {
+      alert("Por favor selecciona día y horario para la entrega.")
+      return
+    }
+
+    const itemsText = lastOrderItems.map(item => `${item.quantity}x ${item.product.name}`).join(', ')
+    const message = `Hola, soy ${customerName}. Compré: ${itemsText}. Quiero coordinar mi entrega para el día ${deliveryDate} a las ${deliveryTime}.`
+    const encodedMessage = encodeURIComponent(message)
+    const waUrl = `https://wa.me/5493446348223?text=${encodedMessage}`
+
+    window.open(waUrl, '_blank')
+  }
+
   const generatePDF = () => {
     const doc = new jsPDF()
     const now = new Date()
@@ -80,15 +111,16 @@ export default function CartSheet() {
     doc.setFontSize(22)
     doc.setTextColor(138, 58, 37) // Color de marca #8A3A25
     doc.text("El Hornerito", 20, 20)
-    
+
     doc.setFontSize(10)
     doc.setTextColor(62, 39, 35)
     doc.text(`Comprobante de compra - ${dateStr} ${timeStr}`, 20, 30)
-    
+
     doc.setFontSize(12)
     doc.text(`Cliente: ${customerName}`, 20, 45)
     doc.text(`WhatsApp: ${customerPhone}`, 20, 52)
-    doc.text(`Estado: PAGADO (Simulado)`, 20, 59)
+    doc.text(`Método: ${paymentMethod === 'mercadopago' ? 'Mercado Pago' : 'Efectivo'}`, 20, 59)
+    doc.text(`Estado: ${paymentMethod === 'mercadopago' ? 'PAGADO (Simulado)' : 'PENDIENTE (Pago contra entrega)'}`, 20, 66)
 
     // Tabla de productos
     const tableData = lastOrderItems.map(item => [
@@ -99,7 +131,7 @@ export default function CartSheet() {
     ])
 
     autoTable(doc, {
-      startY: 70,
+      startY: 75,
       head: [['Producto', 'Cant.', 'Precio Unit.', 'Subtotal']],
       body: tableData,
       theme: 'grid',
@@ -108,7 +140,7 @@ export default function CartSheet() {
     })
 
     const finalY = (doc as any).lastAutoTable.finalY || 100
-    
+
     doc.setFontSize(16)
     doc.setFont("helvetica", "bold")
     doc.text(`TOTAL: $${lastOrderTotal.toLocaleString('es-AR')}`, 130, finalY + 15)
@@ -216,8 +248,8 @@ export default function CartSheet() {
                                   <Minus className="w-4 h-4 stroke-[3]" />
                                 </button>
                                 <span className="font-bold text-[#3E2723] min-w-[20px] text-center">{item.quantity}</span>
-                                <button 
-                                  onClick={() => updateQuantity(item.product.id, item.quantity + 1)} 
+                                <button
+                                  onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                                   disabled={item.quantity >= item.product.stock_quantity}
                                   className={`w-8 h-8 rounded-full border border-[#DBC8B6] flex items-center justify-center transition-colors ${item.quantity >= item.product.stock_quantity ? "bg-[#EAE2D0]/30 text-[#A87B6A] opacity-40 cursor-not-allowed" : "bg-[#EAE2D0] text-[#8A3A25] active:bg-[#DBC8B6]"}`}
                                 >
@@ -228,7 +260,7 @@ export default function CartSheet() {
                                 )}
                               </div>
                             </div>
-                            
+
                             {/* Trash Button */}
                             <button
                               onClick={() => removeItem(item.product.id)}
@@ -315,6 +347,37 @@ export default function CartSheet() {
                             />
                           </div>
                         </div>
+
+                        {/* Métodos de Pago */}
+                        <div className="space-y-3">
+                          <label className="text-[11px] font-black uppercase tracking-widest text-[#8A3A25] pl-1">Método de Pago</label>
+
+                          <button
+                            onClick={() => setPaymentMethod('mercadopago')}
+                            className={`w-full h-[64px] rounded-[20px] border flex items-center justify-between px-5 transition-all ${paymentMethod === 'mercadopago' ? 'bg-[#3E2723] border-[#3E2723]' : 'bg-[#FFF9EE] border-[#DBC8B6]'}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <CreditCard className={`w-5 h-5 ${paymentMethod === 'mercadopago' ? 'text-[#FFF9EE]' : 'text-[#8A3A25]'}`} />
+                              <span className={`font-bold ${paymentMethod === 'mercadopago' ? 'text-[#FFF9EE]' : 'text-[#3E2723]'}`}>Mercado Pago (Pagar ahora)</span>
+                            </div>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'mercadopago' ? 'border-[#C25E3B]' : 'border-[#DBC8B6]'}`}>
+                              {paymentMethod === 'mercadopago' && <div className="w-2.5 h-2.5 rounded-full bg-[#C25E3B]" />}
+                            </div>
+                          </button>
+
+                          <button
+                            onClick={() => setPaymentMethod('cash')}
+                            className={`w-full h-[64px] rounded-[20px] border flex items-center justify-between px-5 transition-all ${paymentMethod === 'cash' ? 'bg-[#3E2723] border-[#3E2723]' : 'bg-[#FFF9EE] border-[#DBC8B6]'}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Banknote className={`w-5 h-5 ${paymentMethod === 'cash' ? 'text-[#FFF9EE]' : 'text-[#8A3A25]'}`} />
+                              <span className={`font-bold ${paymentMethod === 'cash' ? 'text-[#FFF9EE]' : 'text-[#3E2723]'}`}>Efectivo (Pagar en la entrega)</span>
+                            </div>
+                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'cash' ? 'border-[#C25E3B]' : 'border-[#DBC8B6]'}`}>
+                              {paymentMethod === 'cash' && <div className="w-2.5 h-2.5 rounded-full bg-[#C25E3B]" />}
+                            </div>
+                          </button>
+                        </div>
                       </div>
 
                       {errorMsg && (
@@ -334,7 +397,7 @@ export default function CartSheet() {
                       >
                         {loading
                           ? <Loader2 className="w-6 h-6 animate-spin" />
-                          : "Simular Compra 🛍️"
+                          : paymentMethod === 'mercadopago' ? "Pagar con Mercado Pago 🛍️" : "Confirmar Pedido 🛍️"
                         }
                       </motion.button>
                       <button
@@ -352,40 +415,107 @@ export default function CartSheet() {
                   <motion.div
                     key="success"
                     initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                    className="flex-1 flex flex-col items-center justify-center px-8 gap-5 pb-10"
+                    className="flex-1 flex flex-col items-center px-8 gap-5 pb-10 overflow-y-auto pt-8"
                   >
-                    <motion.div
-                      initial={{ scale: 0 }} animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
-                      className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center shadow-lg"
-                    >
-                      <CheckCircle2 className="w-12 h-12 text-emerald-500 stroke-[1.5]" />
-                    </motion.div>
-                    <div className="text-center space-y-2">
-                      <h3 className="text-2xl font-black text-[#3E2723] tracking-tight">¡Pedido Confirmado!</h3>
-                      <p className="text-[#A87B6A] font-semibold text-sm leading-relaxed px-4">
-                        Tu pedido fue registrado exitosamente.<br />El equipo de <strong className="text-[#8A3A25]">El Hornerito</strong> te contactará por Whatsapp para la entrega.
-                      </p>
-                    </div>
-                    
-                    <div className="w-full space-y-3 mt-4">
-                      <motion.button
-                        whileTap={{ scale: 0.96 }}
-                        onClick={generatePDF}
-                        className="w-full h-[60px] bg-[#FFF9EE] text-[#8A3A25] border-2 border-[#8A3A25] font-black text-[15px] uppercase tracking-widest rounded-[22px] flex items-center justify-center gap-3 shadow-sm"
-                      >
-                        <FileText className="w-5 h-5" />
-                        Descargar Comprobante
-                      </motion.button>
+                    {!showCoordination ? (
+                      <>
+                        <motion.div
+                          initial={{ scale: 0 }} animate={{ scale: 1 }}
+                          transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
+                          className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center shadow-lg"
+                        >
+                          <CheckCircle2 className="w-12 h-12 text-emerald-500 stroke-[1.5]" />
+                        </motion.div>
+                        <div className="text-center space-y-2">
+                          <h3 className="text-2xl font-black text-[#3E2723] tracking-tight">¡Pedido Confirmado!</h3>
+                          <p className="text-[#A87B6A] font-semibold text-sm leading-relaxed px-4">
+                            Tu pedido fue registrado exitosamente.<br />El equipo de <strong className="text-[#8A3A25]">El Hornerito</strong> te contactará por Whatsapp para la entrega.
+                          </p>
+                        </div>
 
-                      <motion.button
-                        whileTap={{ scale: 0.96 }}
-                        onClick={handleClose}
-                        className="w-full h-[60px] bg-[#C25E3B] text-[#FFF9EE] font-black text-[15px] uppercase tracking-widest rounded-[22px] flex items-center justify-center shadow-[0_8px_30px_rgba(194,94,59,0.3)]"
+                        <div className="w-full space-y-3 mt-4">
+                          <motion.button
+                            whileTap={{ scale: 0.96 }}
+                            onClick={() => setShowCoordination(true)}
+                            className="w-full h-[60px] bg-[#25D366] text-white font-black text-[15px] uppercase tracking-widest rounded-[22px] flex items-center justify-center gap-3 shadow-[0_6px_20px_rgba(37,211,102,0.3)]"
+                          >
+                            <MessageCircle className="w-5 h-5" />
+                            Coordinar Entrega
+                          </motion.button>
+
+                          <motion.button
+                            whileTap={{ scale: 0.96 }}
+                            onClick={generatePDF}
+                            className="w-full h-[60px] bg-[#FFF9EE] text-[#8A3A25] border-2 border-[#8A3A25] font-black text-[15px] uppercase tracking-widest rounded-[22px] flex items-center justify-center gap-3 shadow-sm"
+                          >
+                            <FileText className="w-5 h-5" />
+                            Descargar Comprobante
+                          </motion.button>
+
+                          <motion.button
+                            whileTap={{ scale: 0.96 }}
+                            onClick={handleClose}
+                            className="w-full h-[60px] bg-[#C25E3B] text-[#FFF9EE] font-black text-[15px] uppercase tracking-widest rounded-[22px] flex items-center justify-center shadow-[0_8px_30px_rgba(194,94,59,0.3)]"
+                          >
+                            Seguir Explorando
+                          </motion.button>
+                        </div>
+                      </>
+                    ) : (
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
+                        className="w-full space-y-6"
                       >
-                        Seguir Explorando
-                      </motion.button>
-                    </div>
+                        <div className="text-center space-y-1">
+                          <h4 className="text-xl font-black text-[#3E2723]">Coordinar Logística</h4>
+                          <p className="text-sm font-semibold text-[#A87B6A]">¿Cuándo enviamos tu pedido?</p>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-black uppercase tracking-widest text-[#8A3A25] pl-1 flex items-center gap-2">
+                              <Calendar className="w-3.5 h-3.5" /> Día de entrega
+                            </label>
+                            <input
+                              type="date"
+                              value={deliveryDate}
+                              onChange={(e) => setDeliveryDate(e.target.value)}
+                              className="w-full h-[60px] px-5 rounded-[20px] bg-[#FFF9EE] border border-[#DBC8B6] focus:border-[#C25E3B] outline-none font-bold text-[#3E2723]"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-black uppercase tracking-widest text-[#8A3A25] pl-1 flex items-center gap-2">
+                              <Clock className="w-3.5 h-3.5" /> Horario aproximado
+                            </label>
+                            <input
+                              type="time"
+                              value={deliveryTime}
+                              onChange={(e) => setDeliveryTime(e.target.value)}
+                              className="w-full h-[60px] px-5 rounded-[20px] bg-[#FFF9EE] border border-[#DBC8B6] focus:border-[#C25E3B] outline-none font-bold text-[#3E2723]"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-4 space-y-3">
+                          <motion.button
+                            whileTap={{ scale: 0.96 }}
+                            onClick={handleWhatsAppContact}
+                            className="w-full h-[64px] bg-[#25D366] text-white font-black text-[17px] uppercase tracking-widest rounded-[22px] flex items-center justify-center gap-3 shadow-[0_8px_30px_rgba(37,211,102,0.4)]"
+                          >
+                            <MessageCircle className="w-6 h-6" />
+                            Contactar por WhatsApp
+                          </motion.button>
+
+                          <button
+                            onClick={() => setShowCoordination(false)}
+                            className="w-full text-center text-sm font-semibold text-[#A87B6A] py-2"
+                          >
+                            ← Volver atrás
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>

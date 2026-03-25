@@ -28,6 +28,8 @@ export interface Order {
   customer_phone: string | null;
   total_amount: number;
   status: OrderStatus;
+  payment_method: string | null;
+  payment_status: string | null;
   mp_preference_id: string | null;
   mp_payment_id: string | null;
   mp_merchant_order_id: string | null;
@@ -88,6 +90,8 @@ export interface Database {
           customer_phone?: string | null;
           total_amount: number;
           status?: OrderStatus;
+          payment_method?: string | null;
+          payment_status?: string | null;
           mp_preference_id?: string | null;
           mp_payment_id?: string | null;
           mp_merchant_order_id?: string | null;
@@ -100,6 +104,8 @@ export interface Database {
           customer_phone?: string | null;
           total_amount?: number;
           status?: OrderStatus;
+          payment_method?: string | null;
+          payment_status?: string | null;
           mp_preference_id?: string | null;
           mp_payment_id?: string | null;
           mp_merchant_order_id?: string | null;

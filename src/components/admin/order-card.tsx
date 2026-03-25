@@ -73,6 +73,15 @@ export function OrderCard({ order, onDelivered, showActions = true }: OrderCardP
                 Activo
               </span>
             )}
+            {order.payment_status === 'paid' ? (
+              <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
+                Pago: Realizado
+              </span>
+            ) : (
+              <span className="text-[9px] font-black uppercase tracking-widest bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full">
+                Pago: Pendiente
+              </span>
+            )}
           </div>
           {/* Fecha renderizada solo en cliente para evitar hydration mismatch */}
           <p className="text-[11px] font-bold text-[#A87B6A] tracking-wider mt-0.5" suppressHydrationWarning>
