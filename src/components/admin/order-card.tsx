@@ -74,22 +74,22 @@ export function OrderCard({ order, onDelivered, showActions = true }: OrderCardP
           <h3 className="font-black text-[#3E2723] text-[17px] tracking-tight">{order.customer_name}</h3>
           
           {/* Badges de Estado y Logística */}
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-row items-center gap-2 mt-2 whitespace-nowrap">
             {order.payment_status === 'paid' ? (
-              <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
                 Pago: Realizado
               </span>
             ) : (
-              <span className="text-[9px] font-black uppercase tracking-widest bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-black uppercase tracking-widest bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full shrink-0">
                 Pago: Pendiente
               </span>
             )}
             {order.delivery_method === 'pickup' ? (
-              <span className="text-[9px] font-black uppercase tracking-widest bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full flex items-center gap-1">
-                🏪 RETIRO EN LOCAL
+              <span className="text-xs font-black uppercase tracking-widest bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
+                🏪 RETIRO
               </span>
             ) : (
-              <span className="text-[9px] font-black uppercase tracking-widest bg-sky-100 text-sky-700 border border-sky-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+              <span className="text-xs font-black uppercase tracking-widest bg-sky-100 text-sky-700 border border-sky-200 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
                 🛵 ENVÍO
               </span>
             )}

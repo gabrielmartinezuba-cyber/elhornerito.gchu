@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Search, MoreVertical, Edit2, Trash2, X, RefreshCw } from "lucide-react"
+import { deleteProductAction } from "@/app/actions/products"
 import ProductBottomSheet from "@/components/admin/product-bottom-sheet"
 import { createClient } from "@/lib/supabase/client"
 import { Product } from "@/types/database"
@@ -36,10 +37,20 @@ export default function ProductsAdminPage() {
 
   const handleDelete = async () => {
     if (!activeProduct) return
-    const { error } = await supabase.from('products').delete().eq('id', activeProduct.id)
-    if (!error) {
+    
+    // Confirmación antes de borrar
+    const confirmed = window.confirm(
+      "¿Seguro querés eliminar este producto? Esta acción no se puede deshacer y el producto desaparecerá del catálogo."
+    )
+    
+    if (!confirmed) return
+
+    const res = await deleteProductAction(activeProduct.id)
+    if (res.success) {
       setProducts(prev => prev.filter(p => p.id !== activeProduct.id))
       setActiveProduct(null)
+    } else {
+      alert("Error al eliminar el producto: " + res.error)
     }
   }
 
