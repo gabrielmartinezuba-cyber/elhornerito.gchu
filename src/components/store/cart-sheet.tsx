@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ShoppingBag, X, Trash2, Plus, Minus, Loader2, CheckCircle2, Phone, User, AlertCircle } from "lucide-react"
+import { ShoppingBag, X, Trash2, Plus, Minus, Loader2, CheckCircle2, Phone, User, AlertCircle, FileText } from "lucide-react"
 import { useCartStore } from "@/store/cartStore"
 import { placeOrder } from "@/app/actions/orders"
+import jsPDF from "jspdf"
+import autoTable from "jspdf-autotable"
 
 type Step = "cart" | "checkout" | "success"
 
@@ -18,6 +20,10 @@ export default function CartSheet() {
   const [customerPhone, setCustomerPhone] = useState("")
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  
+  // Guardar copia de items al comprar para el PDF
+  const [lastOrderItems, setLastOrderItems] = useState<any[]>([])
+  const [lastOrderTotal, setLastOrderTotal] = useState(0)
 
   const items = useCartStore((state) => state.items)
   const getTotalItems = useCartStore((state) => state.getTotalItems)
@@ -55,11 +61,59 @@ export default function CartSheet() {
     setLoading(false)
 
     if (result.success) {
+      setLastOrderItems([...items])
+      setLastOrderTotal(total)
       clearCart()
       setStep("success")
     } else {
       setErrorMsg(result.error || "Error desconocido al procesar el pedido.")
     }
+  }
+
+  const generatePDF = () => {
+    const doc = new jsPDF()
+    const now = new Date()
+    const dateStr = now.toLocaleDateString('es-AR')
+    const timeStr = now.toLocaleTimeString('es-AR')
+
+    // Estilos
+    doc.setFontSize(22)
+    doc.setTextColor(138, 58, 37) // Color de marca #8A3A25
+    doc.text("El Hornerito", 20, 20)
+    
+    doc.setFontSize(10)
+    doc.setTextColor(62, 39, 35)
+    doc.text(`Comprobante de compra - ${dateStr} ${timeStr}`, 20, 30)
+    
+    doc.setFontSize(12)
+    doc.text(`Cliente: ${customerName}`, 20, 45)
+    doc.text(`WhatsApp: ${customerPhone}`, 20, 52)
+    doc.text(`Estado: PAGADO (Simulado)`, 20, 59)
+
+    // Tabla de productos
+    const tableData = lastOrderItems.map(item => [
+      item.product.name,
+      item.quantity.toString(),
+      `$${item.product.price.toLocaleString('es-AR')}`,
+      `$${(item.product.price * item.quantity).toLocaleString('es-AR')}`
+    ])
+
+    autoTable(doc, {
+      startY: 70,
+      head: [['Producto', 'Cant.', 'Precio Unit.', 'Subtotal']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [194, 94, 59] }, // #C25E3B
+      margin: { left: 20, right: 20 }
+    })
+
+    const finalY = (doc as any).lastAutoTable.finalY || 100
+    
+    doc.setFontSize(16)
+    doc.setFont("helvetica", "bold")
+    doc.text(`TOTAL: $${lastOrderTotal.toLocaleString('es-AR')}`, 130, finalY + 15)
+
+    doc.save(`comprobante-elhornerito-${now.getTime()}.pdf`)
   }
 
   return (
@@ -146,16 +200,8 @@ export default function CartSheet() {
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9, x: -100 }}
-                            drag="x"
-                            dragConstraints={{ left: 0, right: 0 }}
-                            onDragEnd={(_, { offset, velocity }) => {
-                              if (offset.x < -100 || velocity.x < -500) removeItem(item.product.id)
-                            }}
-                            className="w-full bg-[#FFF9EE] border border-[#DBC8B6] rounded-2xl p-3 flex gap-4 items-center touch-pan-y shadow-[0_4px_15px_rgba(62,39,35,0.04)] relative overflow-hidden"
+                            className="w-full bg-[#FFF9EE] border border-[#DBC8B6] rounded-2xl p-3 flex gap-4 items-center shadow-[0_4px_15px_rgba(62,39,35,0.04)] relative overflow-hidden"
                           >
-                            <div className="absolute right-0 top-0 bottom-0 w-24 bg-red-100 flex items-center justify-end pr-5 -z-10">
-                              <Trash2 className="w-5 h-5 text-red-500 stroke-[3]" />
-                            </div>
                             <div className="w-20 h-20 rounded-xl bg-[#EAE2D0]/50 shrink-0 overflow-hidden border border-[#DBC8B6]/50">
                               {item.product.image_url
                                 ? <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover" />
@@ -163,16 +209,23 @@ export default function CartSheet() {
                               }
                             </div>
                             <div className="flex-1 min-w-0 pr-2">
-                              <h3 className="font-extrabold text-[#3E2723] truncate text-[15px]">{item.product.name}</h3>
+                              <h3 className="font-extrabold text-[#3E2723] line-clamp-2 leading-tight text-[15px]">{item.product.name}</h3>
                               <p className="font-black text-[#C25E3B] mt-1">${item.product.price.toLocaleString('es-AR')}</p>
                               <div className="flex items-center gap-3 mt-2">
                                 <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="w-8 h-8 rounded-full bg-[#EAE2D0] border border-[#DBC8B6] flex items-center justify-center text-[#8A3A25] active:bg-[#DBC8B6] transition-colors">
                                   <Minus className="w-4 h-4 stroke-[3]" />
                                 </button>
-                                <span className="font-bold text-[#3E2723] min-w-[12px] text-center">{item.quantity}</span>
-                                <button onClick={() => updateQuantity(item.product.id, item.quantity + 1)} className="w-8 h-8 rounded-full bg-[#EAE2D0] border border-[#DBC8B6] flex items-center justify-center text-[#8A3A25] active:bg-[#DBC8B6] transition-colors">
+                                <span className="font-bold text-[#3E2723] min-w-[20px] text-center">{item.quantity}</span>
+                                <button 
+                                  onClick={() => updateQuantity(item.product.id, item.quantity + 1)} 
+                                  disabled={item.quantity >= item.product.stock_quantity}
+                                  className={`w-8 h-8 rounded-full border border-[#DBC8B6] flex items-center justify-center transition-colors ${item.quantity >= item.product.stock_quantity ? "bg-[#EAE2D0]/30 text-[#A87B6A] opacity-40 cursor-not-allowed" : "bg-[#EAE2D0] text-[#8A3A25] active:bg-[#DBC8B6]"}`}
+                                >
                                   <Plus className="w-4 h-4 stroke-[3]" />
                                 </button>
+                                {item.quantity >= item.product.stock_quantity && (
+                                  <span className="text-[9px] font-black text-[#A87B6A] uppercase tracking-tight">Tope</span>
+                                )}
                               </div>
                             </div>
                             
@@ -200,7 +253,7 @@ export default function CartSheet() {
                         whileTap={{ scale: 0.96 }}
                         disabled={items.length === 0}
                         onClick={() => setStep("checkout")}
-                        className="w-full h-[60px] bg-[#C25E3B] hover:bg-[#8A3A25] text-[#FFF9EE] font-black text-lg rounded-2xl flex items-center justify-center shadow-[0_6px_20px_rgba(194,94,59,0.3)] transition-all disabled:opacity-50 uppercase tracking-wide"
+                        className="w-full h-[60px] bg-[#C25E3B] hover:bg-[#8A3A25] text-[#FFF9EE] font-black text-lg rounded-2xl flex items-center justify-center shadow-[0_6px_20px_rgba(194,94,59,0.35)] transition-all disabled:opacity-50 uppercase tracking-wide"
                       >
                         Continuar →
                       </motion.button>
@@ -299,28 +352,40 @@ export default function CartSheet() {
                   <motion.div
                     key="success"
                     initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-                    className="flex-1 flex flex-col items-center justify-center px-8 gap-6 pb-10"
+                    className="flex-1 flex flex-col items-center justify-center px-8 gap-5 pb-10"
                   >
                     <motion.div
                       initial={{ scale: 0 }} animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.1 }}
-                      className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center shadow-lg"
+                      className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center shadow-lg"
                     >
-                      <CheckCircle2 className="w-14 h-14 text-emerald-500 stroke-[1.5]" />
+                      <CheckCircle2 className="w-12 h-12 text-emerald-500 stroke-[1.5]" />
                     </motion.div>
                     <div className="text-center space-y-2">
-                      <h3 className="text-3xl font-black text-[#3E2723] tracking-tight">¡Pedido Confirmado!</h3>
-                      <p className="text-[#A87B6A] font-semibold text-base leading-relaxed">
+                      <h3 className="text-2xl font-black text-[#3E2723] tracking-tight">¡Pedido Confirmado!</h3>
+                      <p className="text-[#A87B6A] font-semibold text-sm leading-relaxed px-4">
                         Tu pedido fue registrado exitosamente.<br />El equipo de <strong className="text-[#8A3A25]">El Hornerito</strong> lo estará preparando.
                       </p>
                     </div>
-                    <motion.button
-                      whileTap={{ scale: 0.96 }}
-                      onClick={handleClose}
-                      className="w-full h-[60px] bg-[#C25E3B] text-[#FFF9EE] font-black text-[17px] uppercase tracking-widest rounded-[22px] flex items-center justify-center shadow-[0_8px_30px_rgba(194,94,59,0.35)] mt-4"
-                    >
-                      Seguir Explorando
-                    </motion.button>
+                    
+                    <div className="w-full space-y-3 mt-4">
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        onClick={generatePDF}
+                        className="w-full h-[60px] bg-[#FFF9EE] text-[#8A3A25] border-2 border-[#8A3A25] font-black text-[15px] uppercase tracking-widest rounded-[22px] flex items-center justify-center gap-3 shadow-sm"
+                      >
+                        <FileText className="w-5 h-5" />
+                        Descargar Comprobante
+                      </motion.button>
+
+                      <motion.button
+                        whileTap={{ scale: 0.96 }}
+                        onClick={handleClose}
+                        className="w-full h-[60px] bg-[#C25E3B] text-[#FFF9EE] font-black text-[15px] uppercase tracking-widest rounded-[22px] flex items-center justify-center shadow-[0_8px_30px_rgba(194,94,59,0.3)]"
+                      >
+                        Seguir Explorando
+                      </motion.button>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

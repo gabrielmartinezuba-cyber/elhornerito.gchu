@@ -26,6 +26,9 @@ export const useCartStore = create<CartState>()(
         set((state) => {
           const existing = state.items.find((item) => item.product.id === product.id)
           if (existing) {
+            // Validar stock antes de sumar
+            if (existing.quantity >= product.stock_quantity) return state
+
             return {
               items: state.items.map((item) =>
                 item.product.id === product.id
@@ -34,6 +37,9 @@ export const useCartStore = create<CartState>()(
               ),
             }
           }
+          // Si el producto no tiene stock, no añadir
+          if (product.stock_quantity <= 0) return state
+
           return { items: [...state.items, { product, quantity: 1 }] }
         })
       },
@@ -51,9 +57,16 @@ export const useCartStore = create<CartState>()(
               items: state.items.filter((item) => item.product.id !== productId),
             }
           }
+          
+          const item = state.items.find(i => i.product.id === productId)
+          if (!item) return state
+
+          // Validar stock: quantity no puede superar product.stock_quantity
+          const finalQty = Math.min(quantity, item.product.stock_quantity)
+
           return {
             items: state.items.map((item) =>
-              item.product.id === productId ? { ...item, quantity } : item
+              item.product.id === productId ? { ...item, quantity: finalQty } : item
             ),
           }
         })

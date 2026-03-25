@@ -151,7 +151,7 @@ function ProductCard({ product }: { product: Product }) {
 
         {/* Info & Controls */}
         <div className="flex-1 min-w-0 pr-2">
-          <h3 className="font-extrabold text-[#3E2723] truncate text-[15px]">{product.name}</h3>
+          <h3 className="font-extrabold text-[#3E2723] line-clamp-2 leading-tight text-[15px] min-h-[2.5rem] flex items-center">{product.name}</h3>
           <p className="font-black text-[#C25E3B] mt-1">${mounted ? product.price.toLocaleString('es-AR') : product.price}</p>
 
           <div className="flex items-center gap-3 mt-2">

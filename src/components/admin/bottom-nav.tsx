@@ -15,8 +15,8 @@ export default function BottomNav() {
   const pathname = usePathname()
 
   const navItems = [
-    { label: "Órdenes", href: "/admin", icon: LayoutDashboard },
     { label: "Menú", href: "/admin/products", icon: Package },
+    { label: "Órdenes", href: "/admin", icon: LayoutDashboard },
     { label: "Ventas", href: "/admin/orders", icon: ShoppingCart },
   ]
 
