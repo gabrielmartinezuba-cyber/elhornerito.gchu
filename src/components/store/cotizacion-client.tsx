@@ -131,7 +131,6 @@ export default function CotizacionClient({ products }: { products: Product[] }) 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-extrabold text-[#3E2723] line-clamp-2 leading-tight text-[14px]">{product.name}</h3>
-                      <p className="text-[#C25E3B] font-black text-sm mt-0.5">${product.price.toLocaleString('es-AR')}</p>
                       <p className="text-[10px] font-bold text-[#A87B6A] uppercase tracking-wider mt-0.5">{product.category}</p>
                     </div>
 
