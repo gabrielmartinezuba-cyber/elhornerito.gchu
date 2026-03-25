@@ -29,7 +29,31 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
 
   const supabase = await createClient()
 
-  // 1. Insertar la orden principal
+  // 1. Validar Stock antes de proceder
+  const productIds = items.map(item => item.product.id)
+  const { data: dbProducts, error: stockCheckError } = await supabase
+    .from('products')
+    .select('id, name, stock_quantity')
+    .in('id', productIds)
+
+  if (stockCheckError) {
+    return { success: false, error: "Error al verificar el stock disponible." }
+  }
+
+  for (const item of items) {
+    const dbProduct = dbProducts?.find(p => p.id === item.product.id)
+    if (!dbProduct) {
+      return { success: false, error: `El producto ${item.product.name} ya no existe.` }
+    }
+    if (dbProduct.stock_quantity < item.quantity) {
+      return { 
+        success: false, 
+        error: `Stock insuficiente para ${item.product.name}. Disponible: ${dbProduct.stock_quantity}` 
+      }
+    }
+  }
+
+  // 2. Insertar la orden principal
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .insert({
@@ -49,7 +73,7 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
     return { success: false, error: `Error al crear la orden: ${orderError?.message}` }
   }
 
-  // 2. Insertar los order_items
+  // 3. Insertar los order_items
   const orderItems = items.map((item) => ({
     order_id: order.id,
     product_id: item.product.id,
@@ -68,8 +92,31 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
     return { success: false, error: `Error al guardar productos: ${itemsError.message}` }
   }
 
+  // 4. Descontar stock
+  // Lo hacemos secuencialmente para asegurar que cada uno se procese
+  for (const item of items) {
+    const { error: stockUpdateError } = await supabase.rpc('decrement_stock', {
+      row_id: item.product.id,
+      quantity_to_remove: item.quantity
+    })
+
+    // Si el RPC no existe, usamos update normal
+    if (stockUpdateError) {
+      const dbProduct = dbProducts?.find(p => p.id === item.product.id)
+      const newStock = (dbProduct?.stock_quantity ?? 0) - item.quantity
+      await supabase
+        .from('products')
+        .update({ 
+          stock_quantity: newStock,
+          in_stock: newStock > 0 
+        })
+        .eq('id', item.product.id)
+    }
+  }
+
   revalidatePath('/admin')
   revalidatePath('/admin/orders')
+  revalidatePath('/') // Revalidar el storefront para el stock
 
   return { success: true, orderId: order.id }
 }

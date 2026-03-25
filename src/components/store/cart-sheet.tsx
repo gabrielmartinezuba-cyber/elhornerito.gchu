@@ -175,6 +175,14 @@ export default function CartSheet() {
                                 </button>
                               </div>
                             </div>
+                            
+                            {/* Trash Button */}
+                            <button
+                              onClick={() => removeItem(item.product.id)}
+                              className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500 hover:bg-red-100 transition-colors shrink-0"
+                            >
+                              <Trash2 className="w-5 h-5 stroke-[2.5]" />
+                            </button>
                           </motion.div>
                         ))}
                       </AnimatePresence>

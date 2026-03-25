@@ -155,45 +155,34 @@ function ProductCard({ product }: { product: Product }) {
           <p className="font-black text-[#C25E3B] mt-1">${mounted ? product.price.toLocaleString('es-AR') : product.price}</p>
 
           <div className="flex items-center gap-3 mt-2">
-            {outOfStock ? (
-              <span className="text-[11px] font-black text-[#A87B6A] uppercase tracking-widest">Sin Stock</span>
-            ) : (
               <>
-                <AnimatePresence>
-                  {qty > 0 && (
-                    <motion.button
-                      key="minus"
-                      initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.6 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                      whileTap={{ scale: 0.85 }}
-                      onClick={handleDecrease}
-                      className="w-8 h-8 rounded-full bg-[#EAE2D0] border border-[#DBC8B6] flex items-center justify-center text-[#8A3A25] active:bg-[#DBC8B6] transition-colors shrink-0"
-                    >
-                      <Minus className="w-4 h-4 stroke-[3]" />
-                    </motion.button>
-                  )}
-                </AnimatePresence>
+                <button
+                  onClick={handleDecrease}
+                  disabled={qty === 0}
+                  className={`w-8 h-8 rounded-full border border-[#DBC8B6] flex items-center justify-center text-[#8A3A25] transition-colors shrink-0 ${qty === 0 ? "bg-[#EAE2D0]/30 opacity-40 cursor-not-allowed" : "bg-[#EAE2D0] active:bg-[#DBC8B6]"}`}
+                >
+                  <Minus className="w-4 h-4 stroke-[3]" />
+                </button>
 
-                {qty > 0 && (
-                  <motion.span
-                    key="qty"
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                    className="font-bold text-[#3E2723] min-w-[12px] text-center"
-                  >
-                    {qty}
-                  </motion.span>
-                )}
+                <span className="font-bold text-[#3E2723] min-w-[20px] text-center">
+                  {qty}
+                </span>
 
-                <motion.button
-                  whileTap={{ scale: 0.85 }}
+                <button
                   onClick={handleAdd}
-                  disabled={atMax}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${atMax ? "bg-[#EAE2D0] text-[#A87B6A] border border-[#DBC8B6] cursor-not-allowed" : "bg-[#C25E3B] text-white shadow-[0_4px_12px_rgba(194,94,59,0.3)] active:scale-90"}`}
+                  disabled={atMax || outOfStock}
+                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${atMax || outOfStock ? "bg-[#EAE2D0] text-[#A87B6A] border border-[#DBC8B6] cursor-not-allowed" : "bg-[#C25E3B] text-white shadow-[0_4px_12px_rgba(194,94,59,0.3)] active:scale-90"}`}
                 >
                   <Plus className="w-4 h-4 stroke-[3]" />
-                </motion.button>
+                </button>
+
+                {outOfStock && (
+                  <span className="text-[10px] font-black text-[#A87B6A] uppercase tracking-widest ml-1">Sin Stock</span>
+                )}
+                {!outOfStock && atMax && qty > 0 && (
+                  <span className="text-[10px] font-black text-[#A87B6A]/60 uppercase tracking-widest ml-1">Tope Stock</span>
+                )}
               </>
-            )}
           </div>
         </div>
       </div>
