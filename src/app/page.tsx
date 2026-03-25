@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { createClient } from "@/lib/supabase/server"
 import StorefrontClient from "@/components/store/storefront-client"
 
@@ -24,11 +25,13 @@ export default async function Page() {
   const settings = settingsRes.data
 
   return (
-    <StorefrontClient 
-      initialProducts={products} 
-      shippingCost={settings?.shipping_cost ?? 2000}
-      freeShippingThreshold={settings?.free_shipping_threshold ?? 15000}
-    />
+    <Suspense fallback={<div className="min-h-screen bg-[#F5F1E7]" />}>
+      <StorefrontClient 
+        initialProducts={products} 
+        shippingCost={settings?.shipping_cost ?? 2000}
+        freeShippingThreshold={settings?.free_shipping_threshold ?? 15000}
+      />
+    </Suspense>
   )
 }
 

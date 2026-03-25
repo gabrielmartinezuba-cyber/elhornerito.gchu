@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Minus, PackageOpen, X, ChevronLeft, ChevronRight, Truck } from "lucide-react"
 import CartSheet from "@/components/store/cart-sheet"
@@ -205,7 +206,17 @@ export default function StorefrontClient({
   shippingCost: number,
   freeShippingThreshold: number
 }) {
+  const searchParams = useSearchParams()
   const [activeCategory, setActiveCategory] = useState<"Todos" | Category>("Todos")
+
+  useEffect(() => {
+    const cat = searchParams.get('cat') as Category
+    if (cat === 'Dulce' || cat === 'Salado') {
+      setActiveCategory(cat)
+    } else if (cat === null) {
+      setActiveCategory('Todos')
+    }
+  }, [searchParams])
 
   // Separar con stock primero, sin stock al final
   const sorted = [...initialProducts].sort((a, b) => {
