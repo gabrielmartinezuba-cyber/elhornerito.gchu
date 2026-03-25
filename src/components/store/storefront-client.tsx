@@ -200,23 +200,30 @@ function ProductCard({ product }: { product: Product }) {
 export default function StorefrontClient({ 
   initialProducts,
   shippingCost,
-  freeShippingThreshold
+  freeShippingThreshold,
+  title = "El Hornerito",
+  subtitle = "Cosas dulces y saladas"
 }: { 
   initialProducts: Product[],
   shippingCost: number,
-  freeShippingThreshold: number
+  freeShippingThreshold: number,
+  title?: string,
+  subtitle?: string
 }) {
   const searchParams = useSearchParams()
   const [activeCategory, setActiveCategory] = useState<"Todos" | Category>("Todos")
 
   useEffect(() => {
     const cat = searchParams.get('cat') as Category
-    if (cat === 'Dulce' || cat === 'Salado') {
+    if (cat === 'Dulce' || cat === 'Salado' || cat === 'Congelado') {
       setActiveCategory(cat)
     } else if (cat === null) {
       setActiveCategory('Todos')
     }
   }, [searchParams])
+
+  const availableCategories = Array.from(new Set(initialProducts.map(p => p.category)))
+  const categories: ("Todos" | Category)[] = ["Todos", ...availableCategories]
 
   // Separar con stock primero, sin stock al final
   const sorted = [...initialProducts].sort((a, b) => {
@@ -237,8 +244,8 @@ export default function StorefrontClient({
         <div className="sticky top-0 z-30 pt-safe bg-[#F5F1E7]/90 backdrop-blur-xl border-b border-[#DBC8B6]">
           <div className="flex justify-between items-center px-6 pt-5 pb-4">
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-[#3E2723] mb-0.5 drop-shadow-sm">El Hornerito</h1>
-              <p className="text-[#A87B6A] text-sm font-semibold">Cosas dulces y saladas</p>
+              <h1 className="text-3xl font-black tracking-tight text-[#3E2723] mb-0.5 drop-shadow-sm">{title}</h1>
+              <p className="text-[#A87B6A] text-sm font-semibold">{subtitle}</p>
               <div className="flex items-center gap-1.5 mt-2.5 px-3 py-1 bg-[#C25E3B]/10 rounded-full w-fit">
                 <Truck className="w-4 h-4 text-[#C25E3B]" />
                 <span className="text-[11px] font-black text-[#8A3A25] uppercase tracking-wider">
@@ -252,22 +259,24 @@ export default function StorefrontClient({
           </div>
 
           {/* Category Pills */}
-          <div className="px-6 pb-4 flex gap-3">
-            {CATEGORIES.map((cat) => (
-              <motion.button
-                key={cat}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setActiveCategory(cat)}
-                className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm ${
-                  activeCategory === cat
-                    ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]"
-                    : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"
-                }`}
-              >
-                {cat}
-              </motion.button>
-            ))}
-          </div>
+          {availableCategories.length > 1 && (
+            <div className="px-6 pb-4 flex gap-3 overflow-x-auto no-scrollbar">
+              {categories.map((cat) => (
+                <motion.button
+                  key={cat}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setActiveCategory(cat)}
+                  className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm flex-shrink-0 ${
+                    activeCategory === cat
+                      ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]"
+                      : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"
+                  }`}
+                >
+                  {cat}
+                </motion.button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Product List — Compact Cards */}

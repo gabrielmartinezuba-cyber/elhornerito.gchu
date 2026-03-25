@@ -3,13 +3,14 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
-import { ShoppingBag, PartyPopper, Home, Cookie, Utensils } from "lucide-react"
+import { ShoppingBag, PartyPopper, Home, Snowflake, Store } from "lucide-react"
 
 export default function StorefrontNav() {
   const pathname = usePathname()
 
   const items = [
-    { label: "Inicio", href: "/", icon: Home },
+    { label: "Panadería", href: "/", icon: Store },
+    { label: "Congelados", href: "/congelados", icon: Snowflake },
     { label: "Cotiza tu evento", href: "/cotizacion", icon: PartyPopper },
   ]
 

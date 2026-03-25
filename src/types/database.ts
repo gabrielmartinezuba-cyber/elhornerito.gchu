@@ -2,7 +2,7 @@
 // Tipos de dominio
 // ────────────────────────────────────────────────────────────────────────────
 
-export type Category = 'Dulce' | 'Salado';
+export type Category = 'Dulce' | 'Salado' | 'Congelado';
 
 export type OrderStatus = 'pending' | 'paid' | 'delivered' | 'cancelled';
 export type DeliveryMethod = 'shipping' | 'pickup';
