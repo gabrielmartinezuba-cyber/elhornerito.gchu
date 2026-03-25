@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { ShoppingBag, X, Trash2, Plus, Minus, Loader2, CheckCircle2, Phone, User, AlertCircle, FileText, CreditCard, Banknote, Calendar, Clock, MessageCircle } from "lucide-react"
+import { ShoppingBag, X, Trash2, Plus, Minus, Loader2, CheckCircle2, Phone, User, AlertCircle, FileText, CreditCard, Banknote, Calendar, Clock, MessageCircle, Truck, MapPin } from "lucide-react"
 import { useCartStore } from "@/store/cartStore"
 import { placeOrder } from "@/app/actions/orders"
 import jsPDF from "jspdf"
@@ -26,6 +26,7 @@ export default function CartSheet({
   const [customerPhone, setCustomerPhone] = useState("")
   const [paymentMethod, setPaymentMethod] = useState<"mercadopago" | "cash">("mercadopago")
   const [loading, setLoading] = useState(false)
+  const [deliveryMethod, setDeliveryMethod] = useState<"shipping" | "pickup">("shipping")
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
 
   // Logística/WhatsApp success state
@@ -36,6 +37,7 @@ export default function CartSheet({
   // Guardar copia de items al comprar para el PDF y WA
   const [lastOrderItems, setLastOrderItems] = useState<any[]>([])
   const [lastOrderTotal, setLastOrderTotal] = useState(0)
+  const [lastOrderDeliveryMethod, setLastOrderDeliveryMethod] = useState<"shipping" | "pickup">("shipping")
 
   const items = useCartStore((state) => state.items)
   const getTotalItems = useCartStore((state) => state.getTotalItems)
@@ -48,7 +50,7 @@ export default function CartSheet({
 
   const totalItems = mounted ? getTotalItems() : 0
   const subtotal = mounted ? getTotal() : 0
-  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD || subtotal === 0 ? 0 : SHIPPING_COST
+  const shippingCost = (deliveryMethod === 'pickup' || subtotal === 0) ? 0 : (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST)
   const totalToPay = subtotal + shippingCost
   const remainingForFreeShipping = FREE_SHIPPING_THRESHOLD - subtotal
 
@@ -82,7 +84,8 @@ export default function CartSheet({
       total: totalToPay,
       paymentMethod,
       paymentStatus,
-      shippingCost
+      shippingCost,
+      deliveryMethod
     })
 
     setLoading(false)
@@ -90,6 +93,7 @@ export default function CartSheet({
     if (result.success) {
       setLastOrderItems([...items])
       setLastOrderTotal(totalToPay)
+      setLastOrderDeliveryMethod(deliveryMethod)
       clearCart()
       setStep("success")
     } else {
@@ -104,7 +108,11 @@ export default function CartSheet({
     }
 
     const itemsText = lastOrderItems.map(item => `${item.quantity}x ${item.product.name}`).join(', ')
-    const message = `Hola, soy ${customerName}. Compré: ${itemsText}. Quiero coordinar mi entrega para el día ${deliveryDate} a las ${deliveryTime}.`
+    const actionText = lastOrderDeliveryMethod === 'pickup' 
+      ? `Pasaré a retirar mi pedido el día ${deliveryDate} a las ${deliveryTime}.`
+      : `Quiero coordinar mi entrega para el día ${deliveryDate} a las ${deliveryTime}.`
+    
+    const message = `Hola, soy ${customerName}. Compré: ${itemsText}. ${actionText}`
     const encodedMessage = encodeURIComponent(message)
     const waUrl = `https://wa.me/5493446348223?text=${encodedMessage}`
 
@@ -286,6 +294,22 @@ export default function CartSheet({
                     {/* Footer */}
                     <div className="border-t border-[#DBC8B6] bg-[#FFF9EE] px-6 py-5 pb-8 shadow-[0_-10px_20px_rgba(62,39,35,0.03)] shrink-0 space-y-4">
                       
+                      {/* Selector de Logística */}
+                      <div className="flex bg-[#EAE2D0]/30 p-1 rounded-2xl gap-1 mb-2">
+                        <button 
+                          onClick={() => setDeliveryMethod('shipping')}
+                          className={`flex-1 h-11 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${deliveryMethod === 'shipping' ? 'bg-[#3E2723] text-[#FFF9EE] shadow-md' : 'text-[#A87B6A]'}`}
+                        >
+                          <Truck className="w-4 h-4" /> Envío
+                        </button>
+                        <button 
+                          onClick={() => setDeliveryMethod('pickup')}
+                          className={`flex-1 h-11 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${deliveryMethod === 'pickup' ? 'bg-[#3E2723] text-[#FFF9EE] shadow-md' : 'text-[#A87B6A]'}`}
+                        >
+                          <MapPin className="w-4 h-4" /> Retiro en local
+                        </button>
+                      </div>
+
                       {/* Subtotal, Shipping & Upselling */}
                       <div className="space-y-1.5 px-1">
                         <div className="flex justify-between items-center text-sm font-bold text-[#A87B6A]">
@@ -293,7 +317,7 @@ export default function CartSheet({
                           <span>${subtotal.toLocaleString('es-AR')}</span>
                         </div>
                         <div className="flex justify-between items-center text-sm font-bold">
-                          <span className="text-[#A87B6A]">Envío</span>
+                          <span className="text-[#A87B6A]">{deliveryMethod === 'pickup' ? 'Retiro en local' : 'Envío'}</span>
                           {shippingCost === 0 ? (
                             <span className="text-emerald-600">¡Gratis!</span>
                           ) : (
@@ -351,7 +375,7 @@ export default function CartSheet({
                           </div>
                         ))}
                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-[#A87B6A] font-semibold">Envío</span>
+                          <span className="text-[#A87B6A] font-semibold">{deliveryMethod === 'pickup' ? 'Retiro en local' : 'Envío'}</span>
                           <span className={`${shippingCost === 0 ? 'text-emerald-600' : 'text-[#8A3A25]'} font-black`}>
                             {shippingCost === 0 ? '¡Gratis!' : `$${shippingCost.toLocaleString('es-AR')}`}
                           </span>

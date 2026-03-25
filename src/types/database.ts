@@ -5,6 +5,8 @@
 export type Category = 'Dulce' | 'Salado';
 
 export type OrderStatus = 'pending' | 'paid' | 'delivered' | 'cancelled';
+export type DeliveryMethod = 'shipping' | 'pickup';
+
 
 export interface Product {
   id: string;
@@ -31,6 +33,7 @@ export interface Order {
   payment_method: string | null;
   payment_status: string | null;
   shipping_cost: number | null;
+  delivery_method: DeliveryMethod | null;
   mp_preference_id: string | null;
   mp_payment_id: string | null;
   mp_merchant_order_id: string | null;
@@ -100,6 +103,7 @@ export interface Database {
           payment_method?: string | null;
           payment_status?: string | null;
           shipping_cost?: number | null;
+          delivery_method?: DeliveryMethod | null;
           mp_preference_id?: string | null;
           mp_payment_id?: string | null;
           mp_merchant_order_id?: string | null;
@@ -115,6 +119,7 @@ export interface Database {
           payment_method?: string | null;
           payment_status?: string | null;
           shipping_cost?: number | null;
+          delivery_method?: DeliveryMethod | null;
           mp_preference_id?: string | null;
           mp_payment_id?: string | null;
           mp_merchant_order_id?: string | null;

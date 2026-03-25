@@ -92,6 +92,15 @@ export function OrderCard({ order, onDelivered, showActions = true }: OrderCardP
                 Pago: Pendiente
               </span>
             )}
+            {order.delivery_method === 'pickup' ? (
+              <span className="text-[9px] font-black uppercase tracking-widest bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                🏪 RETIRO EN LOCAL
+              </span>
+            ) : (
+              <span className="text-[9px] font-black uppercase tracking-widest bg-sky-100 text-sky-700 border border-sky-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                🛵 ENVÍO
+              </span>
+            )}
           </div>
           {/* Fecha renderizada solo en cliente para evitar hydration mismatch */}
           <p className="text-[11px] font-bold text-[#A87B6A] tracking-wider mt-0.5" suppressHydrationWarning>
