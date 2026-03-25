@@ -45,6 +45,12 @@ export interface OrderItem {
   unit_price: number;
 }
 
+export interface StoreSettings {
+  id: number;
+  shipping_cost: number;
+  free_shipping_threshold: number;
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // Database schema — compatible con supabase-js v2.46 / ssr v0.5
 // ────────────────────────────────────────────────────────────────────────────
@@ -116,22 +122,13 @@ export interface Database {
       };
       order_items: {
         Row: OrderItem;
-        Insert: {
-          id?: string;
-          order_id: string;
-          product_id: string;
-          product_name?: string | null;
-          quantity: number;
-          unit_price: number;
-        };
-        Update: {
-          id?: string;
-          order_id?: string;
-          product_id?: string;
-          product_name?: string | null;
-          quantity?: number;
-          unit_price?: number;
-        };
+        Insert: { id?: string; order_id: string; product_id: string; product_name?: string | null; quantity: number; unit_price: number; };
+        Update: { id?: string; order_id?: string; product_id?: string; product_name?: string | null; quantity?: number; unit_price?: number; };
+      };
+      store_settings: {
+        Row: StoreSettings;
+        Insert: { id?: number; shipping_cost?: number; free_shipping_threshold?: number; };
+        Update: { id?: number; shipping_cost?: number; free_shipping_threshold?: number; };
       };
     };
     Views: Record<string, never>;

@@ -195,7 +195,15 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-export default function StorefrontClient({ initialProducts }: { initialProducts: Product[] }) {
+export default function StorefrontClient({ 
+  initialProducts,
+  shippingCost,
+  freeShippingThreshold
+}: { 
+  initialProducts: Product[],
+  shippingCost: number,
+  freeShippingThreshold: number
+}) {
   const [activeCategory, setActiveCategory] = useState<"Todos" | Category>("Todos")
 
   // Separar con stock primero, sin stock al final
@@ -221,7 +229,9 @@ export default function StorefrontClient({ initialProducts }: { initialProducts:
               <p className="text-[#A87B6A] text-sm font-semibold">Cosas dulces y saladas</p>
               <div className="flex items-center gap-1.5 mt-2.5 px-3 py-1 bg-[#C25E3B]/10 rounded-full w-fit">
                 <Truck className="w-4 h-4 text-[#C25E3B]" />
-                <span className="text-[11px] font-black text-[#8A3A25] uppercase tracking-wider">Envío gratis desde $15.000</span>
+                <span className="text-[11px] font-black text-[#8A3A25] uppercase tracking-wider">
+                  Envío gratis desde ${freeShippingThreshold.toLocaleString('es-AR')}
+                </span>
               </div>
             </div>
             <div className="w-24 h-24 shrink-0 flex items-center justify-center pl-2">
@@ -261,7 +271,10 @@ export default function StorefrontClient({ initialProducts }: { initialProducts:
           )}
         </div>
 
-        <CartSheet />
+        <CartSheet 
+          shippingCost={shippingCost} 
+          freeShippingThreshold={freeShippingThreshold} 
+        />
       </main>
     </div>
   )

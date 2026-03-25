@@ -10,10 +10,13 @@ import autoTable from "jspdf-autotable"
 
 type Step = "cart" | "checkout" | "success"
 
-const SHIPPING_COST = 2000
-const FREE_SHIPPING_THRESHOLD = 15000
-
-export default function CartSheet() {
+export default function CartSheet({ 
+  shippingCost: SHIPPING_COST, 
+  freeShippingThreshold: FREE_SHIPPING_THRESHOLD 
+}: { 
+  shippingCost: number, 
+  freeShippingThreshold: number 
+}) {
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [step, setStep] = useState<Step>("cart")
