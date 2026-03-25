@@ -310,7 +310,7 @@ export default function CartSheet() {
                               type="tel"
                               value={customerPhone}
                               onChange={(e) => setCustomerPhone(e.target.value)}
-                              placeholder="11 2345-6789..."
+                              placeholder="3446 12-3456..."
                               className="w-full h-[60px] pl-11 pr-5 rounded-[20px] bg-[#FFF9EE] border border-[#DBC8B6] focus:border-[#C25E3B] focus:bg-white shadow-sm outline-none text-[#3E2723] text-[16px] placeholder:text-[#A87B6A]/60 font-semibold"
                             />
                           </div>
