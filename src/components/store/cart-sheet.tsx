@@ -177,7 +177,7 @@ export default function CartSheet({
             exit={{ scale: 0, opacity: 0 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => setIsOpen(true)}
-            className="fixed bottom-6 right-6 w-16 h-16 bg-[#C25E3B] rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(194,94,59,0.4)] z-40"
+            className="fixed bottom-24 right-6 w-16 h-16 bg-[#C25E3B] rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(194,94,59,0.4)] z-50"
           >
             <ShoppingBag className="w-7 h-7 text-[#FFF9EE]" />
             <div className="absolute -top-2 -right-2 bg-[#3E2723] text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center shadow-md border-2 border-[#F5F1E7]">
