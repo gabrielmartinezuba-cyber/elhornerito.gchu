@@ -71,18 +71,10 @@ export function OrderCard({ order, onDelivered, showActions = true }: OrderCardP
       {/* Header: Nombre + Badge estado + Total */}
       <div className="flex justify-between items-start gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="font-black text-[#3E2723] text-[17px] tracking-tight">{order.customer_name}</h3>
-            {isDelivered && (
-              <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
-                Entregado
-              </span>
-            )}
-            {!isDelivered && (
-              <span className="text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-700 border border-amber-200 px-2 py-0.5 rounded-full">
-                Activo
-              </span>
-            )}
+          <h3 className="font-black text-[#3E2723] text-[17px] tracking-tight">{order.customer_name}</h3>
+          
+          {/* Badges de Estado y Logística */}
+          <div className="flex flex-wrap gap-2 mt-2">
             {order.payment_status === 'paid' ? (
               <span className="text-[9px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
                 Pago: Realizado
@@ -102,8 +94,9 @@ export function OrderCard({ order, onDelivered, showActions = true }: OrderCardP
               </span>
             )}
           </div>
+
           {/* Fecha renderizada solo en cliente para evitar hydration mismatch */}
-          <p className="text-[11px] font-bold text-[#A87B6A] tracking-wider mt-0.5" suppressHydrationWarning>
+          <p className="text-[11px] font-bold text-[#A87B6A] tracking-wider mt-2.5" suppressHydrationWarning>
             {formattedDate ?? ''}
           </p>
         </div>
