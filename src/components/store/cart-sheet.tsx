@@ -364,7 +364,7 @@ export default function CartSheet() {
                     <div className="text-center space-y-2">
                       <h3 className="text-2xl font-black text-[#3E2723] tracking-tight">¡Pedido Confirmado!</h3>
                       <p className="text-[#A87B6A] font-semibold text-sm leading-relaxed px-4">
-                        Tu pedido fue registrado exitosamente.<br />El equipo de <strong className="text-[#8A3A25]">El Hornerito</strong> lo estará preparando.
+                        Tu pedido fue registrado exitosamente.<br />El equipo de <strong className="text-[#8A3A25]">El Hornerito</strong> te contactará por Whatsapp para la entrega.
                       </p>
                     </div>
                     
