@@ -10,6 +10,9 @@ import autoTable from "jspdf-autotable"
 
 type Step = "cart" | "checkout" | "success"
 
+const SHIPPING_COST = 2000
+const FREE_SHIPPING_THRESHOLD = 15000
+
 export default function CartSheet() {
   const [isOpen, setIsOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -41,7 +44,10 @@ export default function CartSheet() {
   useEffect(() => { setMounted(true) }, [])
 
   const totalItems = mounted ? getTotalItems() : 0
-  const total = mounted ? getTotal() : 0
+  const subtotal = mounted ? getTotal() : 0
+  const shippingCost = subtotal >= FREE_SHIPPING_THRESHOLD || subtotal === 0 ? 0 : SHIPPING_COST
+  const totalToPay = subtotal + shippingCost
+  const remainingForFreeShipping = FREE_SHIPPING_THRESHOLD - subtotal
 
   const handleClose = () => {
     setIsOpen(false)
@@ -70,16 +76,17 @@ export default function CartSheet() {
       customerName,
       customerPhone,
       items,
-      total,
+      total: totalToPay,
       paymentMethod,
-      paymentStatus
+      paymentStatus,
+      shippingCost
     })
 
     setLoading(false)
 
     if (result.success) {
       setLastOrderItems([...items])
-      setLastOrderTotal(total)
+      setLastOrderTotal(totalToPay)
       clearCart()
       setStep("success")
     } else {
@@ -274,11 +281,41 @@ export default function CartSheet() {
                     </div>
 
                     {/* Footer */}
-                    <div className="border-t border-[#DBC8B6] bg-[#FFF9EE] px-6 py-5 pb-8 shadow-[0_-10px_20px_rgba(62,39,35,0.03)] shrink-0">
-                      <div className="flex justify-between items-center mb-5">
-                        <span className="text-[#8A3A25] font-bold uppercase tracking-widest text-sm">Total</span>
+                    <div className="border-t border-[#DBC8B6] bg-[#FFF9EE] px-6 py-5 pb-8 shadow-[0_-10px_20px_rgba(62,39,35,0.03)] shrink-0 space-y-4">
+                      
+                      {/* Subtotal, Shipping & Upselling */}
+                      <div className="space-y-1.5 px-1">
+                        <div className="flex justify-between items-center text-sm font-bold text-[#A87B6A]">
+                          <span>Subtotal</span>
+                          <span>${subtotal.toLocaleString('es-AR')}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm font-bold">
+                          <span className="text-[#A87B6A]">Envío</span>
+                          {shippingCost === 0 ? (
+                            <span className="text-emerald-600">¡Gratis!</span>
+                          ) : (
+                            <span className="text-[#8A3A25]">${shippingCost.toLocaleString('es-AR')}</span>
+                          )}
+                        </div>
+                        
+                        {shippingCost > 0 && remainingForFreeShipping > 0 && (
+                          <motion.div 
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-orange-50 border border-orange-100 rounded-xl p-2.5 flex items-center gap-2 mt-2"
+                          >
+                            <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
+                            <p className="text-[11px] font-black text-orange-700 uppercase tracking-tight">
+                              Te faltan <span className="text-[13px] underline decoration-2">${remainingForFreeShipping.toLocaleString('es-AR')}</span> para envío gratis
+                            </p>
+                          </motion.div>
+                        )}
+                      </div>
+
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[#8A3A25] font-black uppercase tracking-widest text-[15px]">Total</span>
                         <span className="text-3xl font-black text-[#3E2723] tracking-tighter">
-                          ${mounted ? total.toLocaleString('es-AR') : 0}
+                          ${mounted ? totalToPay.toLocaleString('es-AR') : 0}
                         </span>
                       </div>
                       <motion.button
@@ -310,9 +347,15 @@ export default function CartSheet() {
                             <span className="text-[#C25E3B] font-black text-sm">${(item.product.price * item.quantity).toLocaleString('es-AR')}</span>
                           </div>
                         ))}
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-[#A87B6A] font-semibold">Envío</span>
+                          <span className={`${shippingCost === 0 ? 'text-emerald-600' : 'text-[#8A3A25]'} font-black`}>
+                            {shippingCost === 0 ? '¡Gratis!' : `$${shippingCost.toLocaleString('es-AR')}`}
+                          </span>
+                        </div>
                         <div className="border-t border-[#DBC8B6] pt-2 mt-2 flex justify-between">
                           <span className="font-black text-[#3E2723] uppercase tracking-wider text-sm">Total</span>
-                          <span className="font-black text-[#8A3A25] text-lg">${total.toLocaleString('es-AR')}</span>
+                          <span className="font-black text-[#8A3A25] text-lg">${totalToPay.toLocaleString('es-AR')}</span>
                         </div>
                       </div>
 

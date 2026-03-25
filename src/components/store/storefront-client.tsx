@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Plus, Minus, PackageOpen, X, ChevronLeft, ChevronRight } from "lucide-react"
+import { Plus, Minus, PackageOpen, X, ChevronLeft, ChevronRight, Truck } from "lucide-react"
 import CartSheet from "@/components/store/cart-sheet"
 import { useCartStore } from "@/store/cartStore"
 import { Product, Category } from "@/types/database"
@@ -219,6 +219,10 @@ export default function StorefrontClient({ initialProducts }: { initialProducts:
             <div>
               <h1 className="text-3xl font-black tracking-tight text-[#3E2723] mb-0.5 drop-shadow-sm">El Hornerito</h1>
               <p className="text-[#A87B6A] text-sm font-semibold">Cosas dulces y saladas</p>
+              <div className="flex items-center gap-1.5 mt-2.5 px-3 py-1 bg-[#C25E3B]/10 rounded-full w-fit">
+                <Truck className="w-4 h-4 text-[#C25E3B]" />
+                <span className="text-[11px] font-black text-[#8A3A25] uppercase tracking-wider">Envío gratis desde $15.000</span>
+              </div>
             </div>
             <div className="w-24 h-24 shrink-0 flex items-center justify-center pl-2">
               <img src="/logo.png" alt="Logo" className="w-full h-full object-contain drop-shadow-md" />

@@ -30,6 +30,7 @@ export interface Order {
   status: OrderStatus;
   payment_method: string | null;
   payment_status: string | null;
+  shipping_cost: number | null;
   mp_preference_id: string | null;
   mp_payment_id: string | null;
   mp_merchant_order_id: string | null;
@@ -92,6 +93,7 @@ export interface Database {
           status?: OrderStatus;
           payment_method?: string | null;
           payment_status?: string | null;
+          shipping_cost?: number | null;
           mp_preference_id?: string | null;
           mp_payment_id?: string | null;
           mp_merchant_order_id?: string | null;
@@ -106,6 +108,7 @@ export interface Database {
           status?: OrderStatus;
           payment_method?: string | null;
           payment_status?: string | null;
+          shipping_cost?: number | null;
           mp_preference_id?: string | null;
           mp_payment_id?: string | null;
           mp_merchant_order_id?: string | null;

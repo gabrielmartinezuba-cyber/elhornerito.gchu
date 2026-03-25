@@ -11,6 +11,7 @@ interface PlaceOrderPayload {
   total: number
   paymentMethod: string
   paymentStatus: string
+  shippingCost: number
 }
 
 export interface PlaceOrderResult {
@@ -20,7 +21,7 @@ export interface PlaceOrderResult {
 }
 
 export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrderResult> {
-  const { customerName, customerPhone, items, total, paymentMethod, paymentStatus } = payload
+  const { customerName, customerPhone, items, total, paymentMethod, paymentStatus, shippingCost } = payload
 
   if (!customerName.trim() || !customerPhone.trim()) {
     return { success: false, error: "Nombre y teléfono son obligatorios." }
@@ -66,6 +67,7 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
       status: 'paid' as const, // Status general de la orden
       payment_method: paymentMethod,
       payment_status: paymentStatus,
+      shipping_cost: shippingCost,
       mp_preference_id: null,
       mp_payment_id: null,
       mp_merchant_order_id: null,
