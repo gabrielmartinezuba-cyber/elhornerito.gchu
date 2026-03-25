@@ -306,7 +306,7 @@ export default function CartSheet() {
                           >
                             <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
                             <p className="text-[11px] font-black text-orange-700 uppercase tracking-tight">
-                              Te faltan <span className="text-[13px] underline decoration-2">${remainingForFreeShipping.toLocaleString('es-AR')}</span> para envío gratis
+                              Te faltan <span className="text-[13px]">${remainingForFreeShipping.toLocaleString('es-AR')}</span> para envío gratis
                             </p>
                           </motion.div>
                         )}
