@@ -10,6 +10,7 @@ export default async function CotizacionPage() {
     .select('*')
     .eq('is_published', true)
     .eq('is_active', true)
+    .neq('category', 'Congelado')
     .order('created_at', { ascending: false })
 
   return <CotizacionClient products={products || []} />
