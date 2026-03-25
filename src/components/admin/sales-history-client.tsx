@@ -30,6 +30,16 @@ export function SalesHistoryClient({ initialDeliveredOrders, overallTotalRevenue
   return (
     <div className="flex-1 overflow-y-auto px-6 py-6 pb-32 space-y-8">
 
+      {/* Total Acumulado Histórico — Ahora Arriba */}
+      <div className="p-6 rounded-[24px] bg-[#3E2723] text-[#FFF9EE] flex justify-between items-center shadow-lg relative overflow-hidden">
+        <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
+        <div>
+          <span className="text-[10px] font-black uppercase tracking-widest text-white/50">Total Facturado Acumulado</span>
+          <p className="text-3xl font-black tracking-tight mt-1">${overallTotalRevenue.toLocaleString('es-AR')}</p>
+        </div>
+        <DollarSign className="w-8 h-8 text-[#C25E3B]" />
+      </div>
+
       {/* Selector de Fecha Estilizado */}
       <div className="space-y-3">
         <label className="text-[11px] font-black uppercase tracking-widest text-[#8A3A25] ml-1 flex items-center gap-2">
@@ -59,16 +69,6 @@ export function SalesHistoryClient({ initialDeliveredOrders, overallTotalRevenue
             <p className="text-2xl font-black tracking-tighter">{filteredOrders.length}</p>
           </div>
         </div>
-      </div>
-
-      {/* Total Acumulado Histórico */}
-      <div className="p-6 rounded-[24px] bg-[#3E2723] text-[#FFF9EE] flex justify-between items-center shadow-lg relative overflow-hidden">
-        <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/5 rounded-full blur-2xl" />
-        <div>
-          <span className="text-[10px] font-black uppercase tracking-widest text-white/50">Total Facturado Acumulado</span>
-          <p className="text-3xl font-black tracking-tight mt-1">${overallTotalRevenue.toLocaleString('es-AR')}</p>
-        </div>
-        <DollarSign className="w-8 h-8 text-[#C25E3B]" />
       </div>
 
       {/* Lista de Entregas del Día */}
