@@ -20,6 +20,7 @@ export interface Product {
   is_published: boolean;
   in_stock: boolean;
   stock_quantity: number;
+  is_active: boolean;
 }
 
 export interface Order {
@@ -75,6 +76,7 @@ export interface Database {
           is_published?: boolean;
           in_stock?: boolean;
           stock_quantity?: number;
+          is_active?: boolean;
         };
         Update: {
           id?: string;
@@ -88,6 +90,7 @@ export interface Database {
           is_published?: boolean;
           in_stock?: boolean;
           stock_quantity?: number;
+          is_active?: boolean;
         };
       };
       orders: {

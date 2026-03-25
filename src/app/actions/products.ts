@@ -8,7 +8,7 @@ export async function deleteProductAction(productId: string) {
 
   const { error } = await supabase
     .from('products')
-    .delete()
+    .update({ is_active: false })
     .eq('id', productId)
 
   if (error) {

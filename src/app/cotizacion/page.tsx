@@ -9,6 +9,7 @@ export default async function CotizacionPage() {
     .from('products')
     .select('*')
     .eq('is_published', true)
+    .eq('is_active', true)
     .order('created_at', { ascending: false })
 
   return <CotizacionClient products={products || []} />

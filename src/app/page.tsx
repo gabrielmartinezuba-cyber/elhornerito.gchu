@@ -13,6 +13,7 @@ export default async function Page() {
       .from('products')
       .select('*')
       .eq('is_published', true)
+      .eq('is_active', true)
       .neq('category', 'Congelado')
       .order('created_at', { ascending: false }),
     supabase
