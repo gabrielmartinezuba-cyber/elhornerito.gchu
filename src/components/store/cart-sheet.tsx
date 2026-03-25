@@ -371,7 +371,7 @@ export default function CartSheet() {
                           >
                             <div className="flex items-center gap-3">
                               <Banknote className={`w-5 h-5 ${paymentMethod === 'cash' ? 'text-[#FFF9EE]' : 'text-[#8A3A25]'}`} />
-                              <span className={`font-bold ${paymentMethod === 'cash' ? 'text-[#FFF9EE]' : 'text-[#3E2723]'}`}>Efectivo (Pagar en la entrega)</span>
+                              <span className={`font-bold ${paymentMethod === 'cash' ? 'text-[#FFF9EE]' : 'text-[#3E2723]'}`}>Pagar en la entrega</span>
                             </div>
                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'cash' ? 'border-[#C25E3B]' : 'border-[#DBC8B6]'}`}>
                               {paymentMethod === 'cash' && <div className="w-2.5 h-2.5 rounded-full bg-[#C25E3B]" />}
