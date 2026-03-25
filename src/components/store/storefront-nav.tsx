@@ -10,9 +10,7 @@ export default function StorefrontNav() {
 
   const items = [
     { label: "Inicio", href: "/", icon: Home },
-    { label: "Dulce", href: "/?cat=Dulce", icon: Cookie },
-    { label: "Salado", href: "/?cat=Salado", icon: Utensils },
-    { label: "Cotizá", href: "/cotizacion", icon: PartyPopper },
+    { label: "Cotiza tu evento", href: "/cotizacion", icon: PartyPopper },
   ]
 
   return (
