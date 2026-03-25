@@ -113,16 +113,16 @@ export function OrderCard({ order, onDelivered, showActions = true }: OrderCardP
         ))}
       </div>
 
-      {/* Acciones — solo visibles si showActions=true y la orden está activa */}
+      {/* Acciones — Alinhadas horizontalmente e compactas */}
       {showActions && !isDelivered && (
-        <div className="flex gap-3">
+        <div className="flex flex-row items-center gap-2">
           <a
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 h-12 bg-[#25D366] rounded-[16px] flex items-center justify-center gap-2 text-white font-black text-sm uppercase tracking-wider shadow-[0_4px_15px_rgba(37,211,102,0.3)] active:scale-95 transition-transform"
+            className="flex-1 h-9 bg-[#25D366] rounded-full flex items-center justify-center gap-1.5 text-white font-black text-[10px] uppercase tracking-wider shadow-sm active:scale-95 transition-transform"
           >
-            <MessageCircle className="w-5 h-5 stroke-[2.5]" />
+            <MessageCircle className="w-3.5 h-3.5 stroke-[2.5]" />
             WhatsApp
           </a>
 
@@ -130,9 +130,9 @@ export function OrderCard({ order, onDelivered, showActions = true }: OrderCardP
             whileTap={{ scale: 0.95 }}
             onClick={handleCancel}
             disabled={isPending}
-            className="flex-1 h-12 border-2 border-red-100 bg-red-50 text-red-600 rounded-[16px] flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider active:scale-95 transition-all disabled:opacity-50"
+            className="flex-1 h-9 border border-red-200 bg-red-50 text-red-600 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] uppercase tracking-wider active:scale-95 transition-all disabled:opacity-50"
           >
-            {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 stroke-[2.5]" />}
+            {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5 stroke-[2.5]" />}
             Cancelar
           </motion.button>
 
@@ -140,11 +140,11 @@ export function OrderCard({ order, onDelivered, showActions = true }: OrderCardP
             whileTap={{ scale: 0.95 }}
             onClick={handleDelivered}
             disabled={isPending}
-            className="flex-1 h-12 bg-[#8A3A25] rounded-[16px] flex items-center justify-center gap-2 text-[#FFF9EE] font-black text-sm uppercase tracking-wider shadow-[0_4px_15px_rgba(138,58,37,0.3)] disabled:opacity-50 transition-all"
+            className="flex-1 h-9 bg-[#3E2723] rounded-full flex items-center justify-center gap-1.5 text-[#FFF9EE] font-black text-[10px] uppercase tracking-wider shadow-sm disabled:opacity-50 transition-all"
           >
             {isPending
-              ? <Loader2 className="w-5 h-5 animate-spin" />
-              : <><CheckCheck className="w-5 h-5 stroke-[2.5]" /> Entregado</>
+              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              : <><CheckCheck className="w-3.5 h-3.5 stroke-[2.5]" /> Entregado</>
             }
           </motion.button>
         </div>
