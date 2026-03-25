@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Minus, PackageOpen, X, ChevronLeft, ChevronRight, Truck } from "lucide-react"
 import CartSheet from "@/components/store/cart-sheet"
+import StorefrontNav from "@/components/store/storefront-nav"
 import { useCartStore } from "@/store/cartStore"
 import { Product, Category } from "@/types/database"
 
@@ -259,7 +260,7 @@ export default function StorefrontClient({
         </div>
 
         {/* Product List — Compact Cards */}
-        <div className="flex-1 overflow-y-auto px-4 pt-4 space-y-3 pb-6">
+        <div className="flex-1 overflow-y-auto px-4 pt-4 space-y-3 pb-24">
           {filtered.length === 0 ? (
             <div className="pt-20 flex flex-col items-center justify-center text-center opacity-60">
               <PackageOpen className="w-16 h-16 text-[#A87B6A] mb-4" strokeWidth={1.5} />
@@ -275,6 +276,7 @@ export default function StorefrontClient({
           shippingCost={shippingCost} 
           freeShippingThreshold={freeShippingThreshold} 
         />
+        <StorefrontNav />
       </main>
     </div>
   )
