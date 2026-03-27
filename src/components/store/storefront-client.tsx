@@ -260,13 +260,13 @@ export default function StorefrontClient({
 
           {/* Category Pills */}
           {availableCategories.length > 1 && (
-            <div className="px-6 pb-4 flex gap-3 overflow-x-auto no-scrollbar">
+            <div className="px-4 pb-4 flex gap-1.5 overflow-x-auto no-scrollbar">
               {categories.map((cat) => (
                 <motion.button
                   key={cat}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-6 py-2.5 rounded-full text-sm font-bold transition-all shadow-sm flex-shrink-0 ${
+                  className={`px-3.5 py-2 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 ${
                     activeCategory === cat
                       ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]"
                       : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"

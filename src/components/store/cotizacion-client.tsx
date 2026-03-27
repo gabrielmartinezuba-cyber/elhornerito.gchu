@@ -88,12 +88,12 @@ export default function CotizacionClient({ products }: { products: Product[] }) 
 
           {/* Category filter — only on select step */}
           {step === "select" && availableCategories.length > 0 && (
-            <div className="px-6 pb-4 flex gap-2 overflow-x-auto no-scrollbar">
+            <div className="px-4 pb-4 flex gap-1.5 overflow-x-auto no-scrollbar">
               {categories.map(cat => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-6 py-2 rounded-full text-sm font-bold transition-all shadow-sm flex-shrink-0 ${activeCategory === cat ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]" : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"}`}
+                  className={`px-3.5 py-2 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 ${activeCategory === cat ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]" : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"}`}
                 >
                   {cat === "a_pedido" ? "A pedido" : cat}
                 </button>
