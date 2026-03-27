@@ -108,9 +108,14 @@ export default function CartSheet({
     }
 
     const itemsText = lastOrderItems.map(item => `${item.quantity}x ${item.product.name}`).join(', ')
+    
+    // Formatear fecha YYYY-MM-DD -> DD/MM/YYYY (Fase 15.12)
+    const [year, month, day] = (deliveryDate || "").split('-')
+    const formattedDateStr = deliveryDate ? `${day}/${month}/${year}` : ""
+
     const actionText = lastOrderDeliveryMethod === 'pickup' 
-      ? `Pasaré a retirar mi pedido el día ${deliveryDate} a las ${deliveryTime}.`
-      : `Quiero coordinar mi entrega para el día ${deliveryDate} a las ${deliveryTime}.`
+      ? `Pasaré a retirar mi pedido el día ${formattedDateStr} a las ${deliveryTime}.`
+      : `Quiero coordinar mi entrega para el día ${formattedDateStr} a las ${deliveryTime}.`
     
     const message = `Hola, soy ${customerName}. Compré: ${itemsText}. ${actionText}`
     const encodedMessage = encodeURIComponent(message)

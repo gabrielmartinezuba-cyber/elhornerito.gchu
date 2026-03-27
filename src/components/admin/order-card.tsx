@@ -39,7 +39,7 @@ export function OrderCard({ order, onDelivered, showActions = true, compact = fa
   const formattedDate = useFormattedDate(order.created_at)
 
   const phone = order.customer_phone?.replace(/\D/g, '') ?? ''
-  const waText = encodeURIComponent(`¡Hola ${order.customer_name}! Tu pedido de El Hornerito está listo 🧁🥐`)
+  const waText = encodeURIComponent(`¡Hola ${order.customer_name}! Tu pedido de El Hornerito se encuentra en preparacion, te avisaremos cuando este listo para coordinar la entrega 🧁🥐`)
   const waLink = `https://wa.me/54${phone}?text=${waText}`
 
   const handleDelivered = () => {
