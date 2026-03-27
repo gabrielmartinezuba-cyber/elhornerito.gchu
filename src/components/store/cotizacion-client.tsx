@@ -69,6 +69,7 @@ export default function CotizacionClient({ products }: { products: Product[] }) 
                 {step === "form" && "Completá los datos del evento"}
                 {step === "confirm" && "Revisá tu cotización"}
               </p>
+              <span className="text-[10px] font-bold text-[#8A3A25] uppercase tracking-wider mt-2 block pl-1">Envíos solo en Gualeguaychú</span>
             </div>
             <div className="p-2 bg-[#C25E3B]/10 rounded-2xl">
               <PartyPopper className="w-6 h-6 text-[#C25E3B]" />

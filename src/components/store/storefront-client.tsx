@@ -242,11 +242,14 @@ export default function StorefrontClient({
             <div>
               <h1 className="text-3xl font-black tracking-tight text-[#3E2723] mb-0.5 drop-shadow-sm">{title}</h1>
               <p className="text-[#A87B6A] text-sm font-semibold">{subtitle}</p>
-              <div className="flex items-center gap-1.5 mt-2.5 px-3 py-1 bg-[#C25E3B]/10 rounded-full w-fit">
-                <Truck className="w-4 h-4 text-[#C25E3B]" />
-                <span className="text-[11px] font-black text-[#8A3A25] uppercase tracking-wider">
-                  Envío gratis desde ${freeShippingThreshold.toLocaleString('es-AR')}
-                </span>
+              <div className="flex flex-col mt-2.5">
+                <span className="text-[10px] font-bold text-[#8A3A25] uppercase tracking-wider mb-1 pl-1">Envíos solo en Gualeguaychú</span>
+                <div className="flex items-center gap-1.5 px-3 py-1 bg-[#C25E3B]/10 rounded-full w-fit">
+                  <Truck className="w-4 h-4 text-[#C25E3B]" />
+                  <span className="text-[11px] font-black text-[#8A3A25] uppercase tracking-wider">
+                    Envío gratis desde ${freeShippingThreshold.toLocaleString('es-AR')}
+                  </span>
+                </div>
               </div>
             </div>
             <div className="w-24 h-24 shrink-0 flex items-center justify-center pl-2">
