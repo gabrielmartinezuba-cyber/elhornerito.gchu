@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ImagePlus, X, Loader2, AlertCircle, CheckCircle2, Upload } from "lucide-react"
+import imageCompression from 'browser-image-compression'
 import { createClient } from "@/lib/supabase/client"
 import { Category, Product } from "@/types/database"
 
@@ -23,6 +24,7 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
   const [stockQty, setStockQty] = useState("0")
 
   const [loading, setLoading] = useState(false)
+  const [compressing, setCompressing] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
@@ -47,14 +49,38 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
     setSuccess(false)
   }, [product, isOpen])
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return
-    const selected = Array.from(e.target.files).slice(0, 3)
-    const oversized = selected.find(f => f.size > 5 * 1024 * 1024)
-    if (oversized) { setErrorMsg("Cada imagen debe pesar menos de 5MB"); return }
-    setFiles(selected)
-    setPreviews(selected.map(f => URL.createObjectURL(f)))
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return
+    
     setErrorMsg(null)
+    setCompressing(true)
+
+    const selected = Array.from(e.target.files).slice(0, 3)
+    
+    try {
+      const options = {
+        maxSizeMB: 0.2, // 200 KB
+        maxWidthOrHeight: 1080,
+        useWebWorker: true,
+      }
+
+      const compressedFiles = await Promise.all(
+        selected.map(file => imageCompression(file, options))
+      )
+
+      // Convertimos los blobs resultantes a archivos con nombre original
+      const finalFiles = compressedFiles.map((blob, i) => 
+        new File([blob], selected[i].name, { type: selected[i].type })
+      )
+
+      setFiles(finalFiles)
+      setPreviews(finalFiles.map(f => URL.createObjectURL(f)))
+    } catch (err) {
+      console.error("Compression error:", err)
+      setErrorMsg("Error al optimizar las imágenes. Reintentá con otros archivos.")
+    } finally {
+      setCompressing(false)
+    }
   }
 
   const uploadFiles = async (): Promise<string[]> => {
@@ -160,23 +186,39 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
                         ))}
                         <button
                           type="button"
-                          onClick={() => fileInputRef.current?.click()}
-                          className="w-24 h-24 rounded-[18px] border border-dashed border-[#A87B6A]/50 bg-[#EAE2D0]/40 flex flex-col items-center justify-center text-[#8A3A25] shrink-0 active:scale-95 transition-transform"
+                          onClick={() => !compressing && fileInputRef.current?.click()}
+                          disabled={compressing}
+                          className="w-24 h-24 rounded-[18px] border border-dashed border-[#A87B6A]/50 bg-[#EAE2D0]/40 flex flex-col items-center justify-center text-[#8A3A25] shrink-0 active:scale-95 transition-transform disabled:opacity-50"
                         >
-                          <Upload className="w-5 h-5 mb-1" />
-                          <span className="text-[9px] font-black uppercase tracking-wider">Cambiar</span>
+                          {compressing ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <>
+                              <Upload className="w-5 h-5 mb-1" />
+                              <span className="text-[9px] font-black uppercase tracking-wider">Cambiar</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     ) : (
                       <div
-                        className="w-full h-36 rounded-[24px] border border-dashed border-[#A87B6A]/50 bg-[#EAE2D0]/50 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform shadow-inner"
-                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full h-36 rounded-[24px] border border-dashed border-[#A87B6A]/50 bg-[#EAE2D0]/50 flex flex-col items-center justify-center cursor-pointer active:scale-[0.98] transition-transform shadow-inner relative overflow-hidden"
+                        onClick={() => !compressing && fileInputRef.current?.click()}
                       >
-                        <div className="p-3 bg-[#DBC8B6]/50 rounded-full mb-2">
-                          <ImagePlus className="w-7 h-7 text-[#C25E3B]" />
-                        </div>
-                        <span className="text-sm font-bold uppercase tracking-widest text-[#8A3A25]">Añadir Fotos</span>
-                        <span className="text-[11px] text-[#A87B6A] mt-1">Máx 3 imágenes · 5MB c/u</span>
+                        {compressing ? (
+                          <div className="flex flex-col items-center">
+                            <Loader2 className="w-8 h-8 text-[#C25E3B] animate-spin mb-2" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-[#A87B6A] animate-pulse">Optimizando Calidad...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="p-3 bg-[#DBC8B6]/50 rounded-full mb-2">
+                              <ImagePlus className="w-7 h-7 text-[#C25E3B]" />
+                            </div>
+                            <span className="text-sm font-bold uppercase tracking-widest text-[#8A3A25]">Añadir Fotos</span>
+                            <span className="text-[11px] text-[#A87B6A] mt-1">Se optimizarán automáticamente</span>
+                          </>
+                        )}
                       </div>
                     )}
                     <input
