@@ -37,7 +37,7 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
   const productIds = items.map(item => item.product.id)
   const { data: dbProducts, error: stockCheckError } = await supabase
     .from('products')
-    .select('id, name, stock_quantity')
+    .select('id, name, stock_quantity, category')
     .in('id', productIds)
 
   if (stockCheckError) {
@@ -49,7 +49,10 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
     if (!dbProduct) {
       return { success: false, error: `El producto ${item.product.name} ya no existe.` }
     }
-    if (dbProduct.stock_quantity < item.quantity) {
+    
+    // EXCEPCIÓN: Los productos 'a_pedido' tienen stock infinito lógico
+    const isAPedido = dbProduct.category === 'a_pedido'
+    if (!isAPedido && dbProduct.stock_quantity < item.quantity) {
       return { 
         success: false, 
         error: `Stock insuficiente para ${item.product.name}. Disponible: ${dbProduct.stock_quantity}` 
@@ -100,9 +103,11 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
     return { success: false, error: `Error al guardar productos: ${itemsError.message}` }
   }
 
-  // 4. Descontar stock
-  // Lo hacemos secuencialmente para asegurar que cada uno se procese
+  // 4. Descontar stock (excepto a_pedido)
   for (const item of items) {
+    const dbProduct = dbProducts?.find(p => p.id === item.product.id)
+    if (dbProduct?.category === 'a_pedido') continue
+
     const { error: stockUpdateError } = await supabase.rpc('decrement_stock', {
       row_id: item.product.id,
       quantity_to_remove: item.quantity
@@ -110,7 +115,6 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
 
     // Si el RPC no existe, usamos update normal
     if (stockUpdateError) {
-      const dbProduct = dbProducts?.find(p => p.id === item.product.id)
       const newStock = (dbProduct?.stock_quantity ?? 0) - item.quantity
       await supabase
         .from('products')
@@ -134,7 +138,10 @@ export async function markOrderDelivered(orderId: string): Promise<{ success: bo
 
   const { error } = await supabase
     .from('orders')
-    .update({ status: 'delivered' as const })
+    .update({ 
+      status: 'delivered' as const,
+      payment_status: 'paid' // Sincronización logística/financiera (Fase 15.1)
+    })
     .eq('id', orderId)
 
   if (error) return { success: false, error: error.message }

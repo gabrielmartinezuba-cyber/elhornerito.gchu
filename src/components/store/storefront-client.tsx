@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Plus, Minus, PackageOpen, X, ChevronLeft, ChevronRight, Truck } from "lucide-react"
 import CartSheet from "@/components/store/cart-sheet"
@@ -110,8 +109,8 @@ function ProductCard({ product }: { product: Product }) {
       ? [product.image_url]
       : []
 
-  const outOfStock = product.stock_quantity === 0
-  const atMax = qty >= product.stock_quantity
+  const outOfStock = product.stock_quantity === 0 && product.category !== 'a_pedido'
+  const atMax = product.category !== 'a_pedido' && qty >= product.stock_quantity
 
   const handleAdd = () => {
     if (outOfStock || atMax) return
@@ -210,20 +209,10 @@ export default function StorefrontClient({
   title?: string,
   subtitle?: string
 }) {
-  const searchParams = useSearchParams()
-  const [activeCategory, setActiveCategory] = useState<"Todos" | Category>("Todos")
-
-  useEffect(() => {
-    const cat = searchParams.get('cat') as Category
-    if (cat === 'Dulce' || cat === 'Salado' || cat === 'Congelado') {
-      setActiveCategory(cat)
-    } else if (cat === null) {
-      setActiveCategory('Todos')
-    }
-  }, [searchParams])
-
   const availableCategories = Array.from(new Set(initialProducts.map(p => p.category)))
-  const categories: ("Todos" | Category)[] = ["Todos", ...availableCategories]
+  const [activeCategory, setActiveCategory] = useState<Category>(availableCategories[0] || 'Dulce')
+
+  const categories = availableCategories
 
   // Separar con stock primero, sin stock al final
   const sorted = [...initialProducts].sort((a, b) => {
@@ -232,9 +221,16 @@ export default function StorefrontClient({
     return 0
   })
 
-  const filtered = activeCategory === "Todos"
-    ? sorted
-    : sorted.filter(p => p.category === activeCategory)
+  const filtered = sorted.filter(p => {
+    const pCat = p.category?.toLowerCase() || ''
+    const aCat = activeCategory?.toLowerCase() || ''
+    
+    // Normalizar 'congelado' y 'congelados' (singular/plural)
+    const isFrozen = (cat: string) => cat === 'congelado' || cat === 'congelados'
+    if (isFrozen(pCat) && isFrozen(aCat)) return true
+    
+    return pCat === aCat
+  })
 
   return (
     <div className="min-h-screen bg-[#EAE2D0] flex flex-col items-center">
@@ -260,13 +256,13 @@ export default function StorefrontClient({
 
           {/* Category Pills */}
           {availableCategories.length > 1 && (
-            <div className="px-4 pb-4 flex gap-1.5 overflow-x-auto no-scrollbar">
+            <div className="px-4 pb-4 flex gap-2">
               {categories.map((cat) => (
                 <motion.button
                   key={cat}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-3.5 py-2 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 ${
+                  className={`flex-1 py-2 rounded-full text-[11px] font-bold transition-all shadow-sm ${
                     activeCategory === cat
                       ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]"
                       : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"

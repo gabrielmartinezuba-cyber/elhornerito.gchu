@@ -13,7 +13,7 @@ export default async function CongeladosPage() {
       .select('*')
       .eq('is_published', true)
       .eq('is_active', true)
-      .eq('category', 'Congelado')
+      .in('category', ['Congelado', 'congelado', 'Congelados', 'congelados', 'CONGELADO'])
       .order('created_at', { ascending: false }),
     supabase
       .from('store_settings')

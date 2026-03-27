@@ -31,9 +31,10 @@ interface OrderCardProps {
   order: OrderWithItems
   onDelivered?: (orderId: string) => void
   showActions?: boolean
+  compact?: boolean
 }
 
-export function OrderCard({ order, onDelivered, showActions = true }: OrderCardProps) {
+export function OrderCard({ order, onDelivered, showActions = true, compact = false }: OrderCardProps) {
   const [isPending, startTransition] = useTransition()
   const formattedDate = useFormattedDate(order.created_at)
 
@@ -66,53 +67,63 @@ export function OrderCard({ order, onDelivered, showActions = true }: OrderCardP
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95, y: -10 }}
-      className="w-full bg-[#FFF9EE] border border-[#DBC8B6] rounded-[22px] p-5 shadow-[0_4px_20px_rgba(62,39,35,0.06)] space-y-4"
+      className={`w-full bg-[#FFF9EE] border border-[#DBC8B6] rounded-[22px] shadow-[0_4px_20px_rgba(62,39,35,0.06)] transition-all ${compact ? 'p-3 space-y-2.5' : 'p-5 space-y-4'}`}
     >
       {/* Header: Nombre + Badge estado + Total */}
       <div className="flex justify-between items-start gap-2">
         <div className="flex-1 min-w-0">
-          <h3 className="font-black text-[#3E2723] text-[17px] tracking-tight">{order.customer_name}</h3>
+          <h3 className={`font-black text-[#3E2723] tracking-tight ${compact ? 'text-[15px]' : 'text-[17px]'}`}>{order.customer_name}</h3>
           
-          {/* Badges de Estado y Logística */}
-          <div className="flex flex-row items-center gap-2 mt-2 whitespace-nowrap">
-            {order.payment_status === 'paid' ? (
-              <span className="text-xs font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
-                Pago: Realizado
-              </span>
-            ) : (
-              <span className="text-xs font-black uppercase tracking-widest bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full shrink-0">
-                Pago: Pendiente
-              </span>
-            )}
-            {order.delivery_method === 'pickup' ? (
-              <span className="text-xs font-black uppercase tracking-widest bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                🏪 RETIRO
-              </span>
-            ) : (
-              <span className="text-xs font-black uppercase tracking-widest bg-sky-100 text-sky-700 border border-sky-200 px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0">
-                🛵 ENVÍO
-              </span>
-            )}
-          </div>
+          {/* Badges de Estado y Logística - Ocultos en modo compacto */}
+          {!compact && (
+            <div className="flex flex-row items-center gap-2 mt-2 whitespace-nowrap">
+              {order.payment_status === 'paid' || order.payment_status === 'approved' ? (
+                <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
+                  PAGO: SÍ
+                </span>
+              ) : (
+                <span className="text-[10px] font-black uppercase tracking-widest bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full shrink-0">
+                  PAGO: NO
+                </span>
+              )}
+              {order.delivery_method === 'pickup' ? (
+                <span className="text-[10px] font-black uppercase tracking-widest bg-purple-100 text-purple-700 border border-purple-200 px-2 py-0.5 rounded-full shrink-0">
+                  RETIRO
+                </span>
+              ) : (
+                <span className="text-[10px] font-black uppercase tracking-widest bg-sky-100 text-sky-700 border border-sky-200 px-2 py-0.5 rounded-full shrink-0">
+                  ENVÍO
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Fecha renderizada solo en cliente para evitar hydration mismatch */}
-          <p className="text-[11px] font-bold text-[#A87B6A] tracking-wider mt-2.5" suppressHydrationWarning>
+          <p className={`font-bold text-[#A87B6A] tracking-wider ${compact ? 'text-[9.5px] mt-1' : 'text-[11px] mt-2.5'}`} suppressHydrationWarning>
             {formattedDate ?? ''}
           </p>
         </div>
-        <span className="text-xl font-black text-[#C25E3B] tracking-tighter shrink-0">
+        <span className={`font-black text-[#C25E3B] tracking-tighter shrink-0 ${compact ? 'text-lg' : 'text-xl'}`}>
           ${Number(order.total_amount).toLocaleString('es-AR')}
         </span>
       </div>
 
       {/* Items del pedido */}
-      <div className="bg-[#EAE2D0]/50 border border-[#DBC8B6]/50 rounded-[16px] p-3 space-y-1.5">
+      <div className={`bg-[#EAE2D0]/50 border border-[#DBC8B6]/50 rounded-[16px] p-3 ${compact ? 'space-y-1' : 'space-y-1.5'}`}>
         {order.order_items.map((item, i) => (
           <div key={i} className="flex justify-between items-center text-sm">
-            <span className="text-[#3E2723] font-semibold">{item.quantity}× {item.product_name}</span>
-            <span className="text-[#8A3A25] font-black">${(item.unit_price * item.quantity).toLocaleString('es-AR')}</span>
+            <span className={`text-[#3E2723] font-semibold ${compact ? 'text-[13px]' : ''}`}>{item.quantity}× {item.product_name}</span>
+            <span className={`text-[#8A3A25] font-black ${compact ? 'text-[13px]' : ''}`}>${(item.unit_price * item.quantity).toLocaleString('es-AR')}</span>
           </div>
         ))}
+
+        {/* Desglose de Envío (Fase 15.7) */}
+        {Number(order.shipping_cost) > 0 && (
+          <div className="flex justify-between items-center text-sm pt-1 mt-1 border-t border-[#DBC8B6]/30 opacity-80">
+            <span className={`text-[#3E2723] font-medium italic ${compact ? 'text-[12px]' : ''}`}>Costo de Envío</span>
+            <span className={`text-[#8A3A25] font-black ${compact ? 'text-[12px]' : ''}`}>${Number(order.shipping_cost).toLocaleString('es-AR')}</span>
+          </div>
+        )}
       </div>
 
       {/* Acciones — Alinhadas horizontalmente e compactas */}

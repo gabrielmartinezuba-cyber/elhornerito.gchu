@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
-import { LayoutDashboard, Package, ShoppingCart, Settings } from "lucide-react"
+import { LayoutDashboard, Package, ShoppingCart, Settings, BarChart3 } from "lucide-react"
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -18,6 +18,7 @@ export default function BottomNav() {
     { label: "Productos", href: "/admin/products", icon: Package },
     { label: "Órdenes", href: "/admin", icon: LayoutDashboard },
     { label: "Ventas", href: "/admin/orders", icon: ShoppingCart },
+    { label: "Métricas", href: "/admin/metrics", icon: BarChart3 },
     { label: "Config", href: "/admin/settings", icon: Settings },
   ]
 

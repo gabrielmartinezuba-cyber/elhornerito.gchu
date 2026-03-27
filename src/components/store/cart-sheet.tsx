@@ -268,12 +268,13 @@ export default function CartSheet({
                                 <span className="font-bold text-[#3E2723] min-w-[20px] text-center">{item.quantity}</span>
                                 <button
                                   onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                                  disabled={item.quantity >= item.product.stock_quantity}
-                                  className={`w-8 h-8 rounded-full border border-[#DBC8B6] flex items-center justify-center transition-colors ${item.quantity >= item.product.stock_quantity ? "bg-[#EAE2D0]/30 text-[#A87B6A] opacity-40 cursor-not-allowed" : "bg-[#EAE2D0] text-[#8A3A25] active:bg-[#DBC8B6]"}`}
+                                  // Los 'a_pedido' no tienen límite de stock
+                                  disabled={item.product.category !== 'a_pedido' && item.quantity >= item.product.stock_quantity}
+                                  className={`w-8 h-8 rounded-full border border-[#DBC8B6] flex items-center justify-center transition-colors ${item.product.category !== 'a_pedido' && item.quantity >= item.product.stock_quantity ? "bg-[#EAE2D0]/30 text-[#A87B6A] opacity-40 cursor-not-allowed" : "bg-[#EAE2D0] text-[#8A3A25] active:bg-[#DBC8B6]"}`}
                                 >
                                   <Plus className="w-4 h-4 stroke-[3]" />
                                 </button>
-                                {item.quantity >= item.product.stock_quantity && (
+                                {item.product.category !== 'a_pedido' && item.quantity >= item.product.stock_quantity && (
                                   <span className="text-[9px] font-black text-[#A87B6A] uppercase tracking-tight">Tope</span>
                                 )}
                               </div>

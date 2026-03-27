@@ -89,6 +89,7 @@ export function SalesHistoryClient({ initialDeliveredOrders, overallTotalRevenue
                 key={order.id}
                 order={order}
                 showActions={false}
+                compact={true}
               />
             ))
           )}

@@ -11,10 +11,11 @@ type Step = "select" | "form" | "confirm"
 export default function CotizacionClient({ products }: { products: Product[] }) {
   // Step flow
   const [step, setStep] = useState<Step>("select")
-  const [activeCategory, setActiveCategory] = useState<"Todos" | Category>("Todos")
-
+  
   const availableCategories = Array.from(new Set(products.map(p => p.category)))
-  const categories: ("Todos" | Category)[] = ["Todos", ...availableCategories]
+  const [activeCategory, setActiveCategory] = useState<Category>('Dulce')
+
+  const categories = availableCategories
 
   // Selected products
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -25,9 +26,7 @@ export default function CotizacionClient({ products }: { products: Product[] }) 
   const [guestCount, setGuestCount] = useState("")
   const [clientName, setClientName] = useState("")
 
-  const filtered = activeCategory === "Todos"
-    ? products
-    : products.filter(p => p.category === activeCategory)
+  const filtered = products.filter(p => p.category === activeCategory)
 
   const toggleProduct = (id: string) => {
     setSelected(prev => {
@@ -88,12 +87,12 @@ export default function CotizacionClient({ products }: { products: Product[] }) 
 
           {/* Category filter — only on select step */}
           {step === "select" && availableCategories.length > 0 && (
-            <div className="px-4 pb-4 flex gap-1.5 overflow-x-auto no-scrollbar">
+            <div className="px-4 pb-4 flex gap-2">
               {categories.map(cat => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-3.5 py-2 rounded-full text-xs font-bold transition-all shadow-sm flex-shrink-0 ${activeCategory === cat ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]" : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"}`}
+                  className={`flex-1 py-2 rounded-full text-[11px] font-bold transition-all shadow-sm ${activeCategory === cat ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]" : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"}`}
                 >
                   {cat === "a_pedido" ? "A pedido" : cat}
                 </button>
@@ -132,7 +131,6 @@ export default function CotizacionClient({ products }: { products: Product[] }) 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-extrabold text-[#3E2723] line-clamp-2 leading-tight text-[14px]">{product.name}</h3>
-                      <p className="text-[10px] font-bold text-[#A87B6A] uppercase tracking-wider mt-0.5">{product.category}</p>
                     </div>
 
                     {/* Checkbox */}

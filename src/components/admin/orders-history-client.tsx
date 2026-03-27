@@ -70,7 +70,8 @@ export function OrdersHistoryClient({ paidOrders, deliveredOrders }: Props) {
               <OrderCard
                 key={order.id}
                 order={order}
-                showActions={false}  // sin botones de acción
+                showActions={false}
+                compact={true}
               />
             ))}
           </div>
