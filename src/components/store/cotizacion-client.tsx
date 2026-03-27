@@ -6,14 +6,15 @@ import { CalendarDays, Clock, Users, User, MessageCircle, ChevronRight, Check, A
 import { Product, Category } from "@/types/database"
 import StorefrontNav from "@/components/store/storefront-nav"
 
-const CATEGORIES: ("Todos" | Category)[] = ["Todos", "Dulce", "Salado"]
-
 type Step = "select" | "form" | "confirm"
 
 export default function CotizacionClient({ products }: { products: Product[] }) {
   // Step flow
   const [step, setStep] = useState<Step>("select")
   const [activeCategory, setActiveCategory] = useState<"Todos" | Category>("Todos")
+
+  const availableCategories = Array.from(new Set(products.map(p => p.category)))
+  const categories: ("Todos" | Category)[] = ["Todos", ...availableCategories]
 
   // Selected products
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -86,15 +87,15 @@ export default function CotizacionClient({ products }: { products: Product[] }) 
           </div>
 
           {/* Category filter — only on select step */}
-          {step === "select" && (
-            <div className="px-6 pb-4 flex gap-2">
-              {CATEGORIES.map(cat => (
+          {step === "select" && availableCategories.length > 0 && (
+            <div className="px-6 pb-4 flex gap-2 overflow-x-auto no-scrollbar">
+              {categories.map(cat => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`flex-1 py-2 rounded-full text-sm font-bold transition-all shadow-sm ${activeCategory === cat ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]" : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"}`}
+                  className={`px-6 py-2 rounded-full text-sm font-bold transition-all shadow-sm flex-shrink-0 ${activeCategory === cat ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]" : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"}`}
                 >
-                  {cat}
+                  {cat === "a_pedido" ? "A pedido" : cat}
                 </button>
               ))}
             </div>

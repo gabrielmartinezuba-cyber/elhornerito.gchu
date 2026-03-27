@@ -272,7 +272,7 @@ export default function StorefrontClient({
                       : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"
                   }`}
                 >
-                  {cat}
+                  {cat === "a_pedido" ? "A pedido" : cat}
                 </motion.button>
               ))}
             </div>
