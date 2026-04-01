@@ -4,7 +4,8 @@ import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { ShoppingBag, X, Trash2, Plus, Minus, Loader2, CheckCircle2, Phone, User, AlertCircle, FileText, CreditCard, Banknote, Calendar, Clock, MessageCircle, Truck, MapPin } from "lucide-react"
 import { useCartStore } from "@/store/cartStore"
-import { placeOrder } from "@/app/actions/orders"
+import { placeOrder, confirmMPOrder, getOrder } from "@/app/actions/orders"
+import { createPreference } from "@/app/actions/mercadopago"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 
@@ -48,6 +49,47 @@ export default function CartSheet({
 
   useEffect(() => { setMounted(true) }, [])
 
+  // ─── EFECTO: CAPTURAR RETORNO DE MERCADO PAGO (Fase 16) ─────────────────────
+  useEffect(() => {
+    if (!mounted) return
+    const params = new URLSearchParams(window.location.search)
+    const status = params.get('status')
+    const orderId = params.get('order_id')
+    const paymentId = params.get('payment_id')
+
+    if (status === 'approved' && orderId) {
+      const handleReturn = async () => {
+        setLoading(true)
+        // 1. Confirmar en DB (status paid, payment_status paid)
+        await confirmMPOrder(orderId, paymentId || '')
+        
+        // 2. Recuperar datos de la orden para el modal/PDF
+        const { success, order } = await getOrder(orderId)
+        if (success && order) {
+          // Mapeamos items de DB al formato interno del carrito
+          const dbItems = order.order_items.map((item: any) => ({
+            product: { name: item.product_name, price: item.unit_price },
+            quantity: item.quantity
+          }))
+          setLastOrderItems(dbItems)
+          setLastOrderTotal(order.total_amount)
+          setLastOrderDeliveryMethod(order.delivery_method)
+          setCustomerName(order.customer_name)
+          setCustomerPhone(order.customer_phone)
+        }
+
+        clearCart()
+        setIsOpen(true)
+        setStep("success")
+        setLoading(false)
+        
+        // Limpiar URL sin recargar
+        window.history.replaceState({}, '', '/')
+      }
+      handleReturn()
+    }
+  }, [mounted])
+
   const totalItems = mounted ? getTotalItems() : 0
   const subtotal = mounted ? getTotal() : 0
   const shippingCost = (deliveryMethod === 'pickup' || subtotal === 0) ? 0 : (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST)
@@ -75,7 +117,7 @@ export default function CartSheet({
     setErrorMsg(null)
 
     // Seteamos estado de pago según método
-    const paymentStatus = paymentMethod === 'mercadopago' ? 'paid' : 'pending'
+    const paymentStatus = paymentMethod === 'mercadopago' ? 'pending' : 'paid'
 
     const result = await placeOrder({
       customerName,
@@ -88,17 +130,35 @@ export default function CartSheet({
       deliveryMethod
     })
 
-    setLoading(false)
-
-    if (result.success) {
-      setLastOrderItems([...items])
-      setLastOrderTotal(totalToPay)
-      setLastOrderDeliveryMethod(deliveryMethod)
-      clearCart()
-      setStep("success")
-    } else {
+    if (!result.success) {
+      setLoading(false)
       setErrorMsg(result.error || "Error desconocido al procesar el pedido.")
+      return
     }
+
+    // ─── LÓGICA MERCADO PAGO: REDIRECCIÓN (Fase 16) ───────────────────────────
+    if (paymentMethod === 'mercadopago' && result.orderId) {
+      try {
+        const { initPoint } = await createPreference(result.orderId)
+        if (initPoint) {
+           window.location.href = initPoint
+           return
+        }
+      } catch (err) {
+        console.error("MP Preference Error:", err)
+        setErrorMsg("Error al conectar con Mercado Pago. Reintentá.")
+        setLoading(false)
+        return
+      }
+    }
+
+    // LÓGICA EFECTIVO: DIRECTO A SUCCESS
+    setLoading(false)
+    setLastOrderItems([...items])
+    setLastOrderTotal(totalToPay)
+    setLastOrderDeliveryMethod(deliveryMethod)
+    clearCart()
+    setStep("success")
   }
 
   const handleWhatsAppContact = () => {
@@ -140,16 +200,15 @@ export default function CartSheet({
     doc.text(`Comprobante de compra - ${dateStr} ${timeStr}`, 20, 30)
 
     doc.setFontSize(12)
-    doc.text(`Cliente: ${customerName}`, 20, 45)
-    doc.text(`WhatsApp: ${customerPhone}`, 20, 52)
-    doc.text(`Método: ${paymentMethod === 'mercadopago' ? 'Mercado Pago' : 'Efectivo'}`, 20, 59)
-    doc.text(`Estado: ${paymentMethod === 'mercadopago' ? 'PAGADO (Simulado)' : 'PENDIENTE (Pago contra entrega)'}`, 20, 66)
+    doc.text(`Cliente: ${customerName}`, 20, 36)
+    doc.text(`Teléfono: ${customerPhone}`, 20, 42)
+    doc.text(`Pago: ${paymentMethod === 'mercadopago' ? 'Mercado Pago (Aprobado)' : 'Pagar en la entrega'}`, 20, 48)
 
     // Tabla de productos
     const tableData = lastOrderItems.map(item => [
       item.product.name,
       item.quantity.toString(),
-      `$${item.product.price.toLocaleString('es-AR')}`,
+      `$${item.product.price}`,
       `$${(item.product.price * item.quantity).toLocaleString('es-AR')}`
     ])
 
@@ -503,7 +562,9 @@ export default function CartSheet({
                           <CheckCircle2 className="w-12 h-12 text-emerald-500 stroke-[1.5]" />
                         </motion.div>
                         <div className="text-center space-y-2">
-                          <h3 className="text-2xl font-black text-[#3E2723] tracking-tight">¡Pedido Confirmado!</h3>
+                          <h3 className="text-2xl font-black text-[#3E2723] tracking-tight">
+                            {paymentMethod === 'mercadopago' ? '¡Pago y Pedido Confirmados!' : '¡Pedido Confirmado!'}
+                          </h3>
                           <p className="text-[#A87B6A] font-semibold text-sm leading-relaxed px-4">
                             Tu pedido fue registrado exitosamente.<br />El equipo de <strong className="text-[#8A3A25]">El Hornerito</strong> te contactará por Whatsapp para {lastOrderDeliveryMethod === 'pickup' ? 'el retiro' : 'la entrega'}.
                           </p>
@@ -516,7 +577,7 @@ export default function CartSheet({
                             className="w-full h-[60px] bg-[#25D366] text-white font-black text-[15px] uppercase tracking-widest rounded-[22px] flex items-center justify-center gap-3 shadow-[0_6px_20px_rgba(37,211,102,0.3)]"
                           >
                             <MessageCircle className="w-5 h-5" />
-                            Coordinar {lastOrderDeliveryMethod === 'pickup' ? 'Retiro' : 'Entrega'}
+                            Coordinar entrega
                           </motion.button>
 
                           <motion.button

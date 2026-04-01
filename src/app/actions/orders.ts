@@ -68,9 +68,9 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
       customer_phone: customerPhone.trim(),
       customer_email: '',
       total_amount: total,
-      status: 'paid' as const, // Status general de la orden
+      status: paymentMethod === 'mercadopago' ? 'pending' as const : 'paid' as const, // Status general de la orden
       payment_method: paymentMethod,
-      payment_status: paymentStatus,
+      payment_status: paymentMethod === 'mercadopago' ? 'pending' : paymentStatus,
       shipping_cost: deliveryMethod === 'pickup' ? 0 : shippingCost,
       delivery_method: deliveryMethod,
       mp_preference_id: null,
@@ -152,6 +152,26 @@ export async function markOrderDelivered(orderId: string): Promise<{ success: bo
   return { success: true }
 }
 
+export async function confirmMPOrder(orderId: string, paymentId: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ 
+      status: 'paid' as const,
+      payment_status: 'paid',
+      mp_payment_id: paymentId
+    })
+    .eq('id', orderId)
+
+  if (error) return { success: false, error: error.message }
+
+  revalidatePath('/admin')
+  revalidatePath('/admin/orders')
+
+  return { success: true }
+}
+
 export async function cancelOrder(orderId: string): Promise<{ success: boolean; error?: string }> {
   try {
     const supabase = await createClient()
@@ -207,5 +227,17 @@ export async function cancelOrder(orderId: string): Promise<{ success: boolean; 
     console.error("CancelOrder Error:", err)
     return { success: false, error: err.message || "Error al cancelar la orden." }
   }
+}
+
+export async function getOrder(orderId: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*, order_items(*)')
+    .eq('id', orderId)
+    .single()
+  
+  if (error) return { success: false, error: error.message }
+  return { success: true, order: data }
 }
 
