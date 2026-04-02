@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { ShoppingBag, X, Trash2, Plus, Minus, Loader2, CheckCircle2, Phone, User, AlertCircle, FileText, CreditCard, Banknote, Calendar, Clock, MessageCircle, Truck, MapPin } from "lucide-react"
 import { useCartStore } from "@/store/cartStore"
 import { placeOrder, confirmMPOrder, getOrder } from "@/app/actions/orders"
-import { createPreference } from "@/app/actions/mercadopago"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 
@@ -25,7 +24,7 @@ export default function CartSheet({
   // Checkout form
   const [customerName, setCustomerName] = useState("")
   const [customerPhone, setCustomerPhone] = useState("")
-  const [paymentMethod, setPaymentMethod] = useState<"mercadopago" | "cash">("mercadopago")
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "transfer">("cash")
   const [loading, setLoading] = useState(false)
   const [deliveryMethod, setDeliveryMethod] = useState<"shipping" | "pickup">("shipping")
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -116,16 +115,13 @@ export default function CartSheet({
     setLoading(true)
     setErrorMsg(null)
 
-    // Seteamos estado de pago según método
-    const paymentStatus = paymentMethod === 'mercadopago' ? 'pending' : 'paid'
-
     const result = await placeOrder({
       customerName,
       customerPhone,
       items,
       total: totalToPay,
       paymentMethod,
-      paymentStatus,
+      paymentStatus: 'pending', // Requerido por la interfaz
       shippingCost,
       deliveryMethod
     })
@@ -136,23 +132,8 @@ export default function CartSheet({
       return
     }
 
-    // ─── LÓGICA MERCADO PAGO: REDIRECCIÓN (Fase 16) ───────────────────────────
-    if (paymentMethod === 'mercadopago' && result.orderId) {
-      try {
-        const { initPoint } = await createPreference(result.orderId)
-        if (initPoint) {
-           window.location.href = initPoint
-           return
-        }
-      } catch (err) {
-        console.error("MP Preference Error:", err)
-        setErrorMsg("Error al conectar con Mercado Pago. Reintentá.")
-        setLoading(false)
-        return
-      }
-    }
-
-    // LÓGICA EFECTIVO: DIRECTO A SUCCESS
+    // Ya no usamos redirección a Mercado Pago (Fase 19)
+    
     setLoading(false)
     setLastOrderItems([...items])
     setLastOrderTotal(totalToPay)
@@ -202,7 +183,7 @@ export default function CartSheet({
     doc.setFontSize(12)
     doc.text(`Cliente: ${customerName}`, 20, 36)
     doc.text(`Teléfono: ${customerPhone}`, 20, 42)
-    doc.text(`Pago: ${paymentMethod === 'mercadopago' ? 'Mercado Pago (Aprobado)' : 'Pagar en la entrega'}`, 20, 48)
+    doc.text(`Pago: Pagar en la entrega / Transferencia (PENDIENTE)`, 20, 48)
 
     // Tabla de productos
     const tableData = lastOrderItems.map(item => [
@@ -488,25 +469,12 @@ export default function CartSheet({
                           <label className="text-[11px] font-black uppercase tracking-widest text-[#8A3A25] pl-1">Método de Pago</label>
 
                           <button
-                            onClick={() => setPaymentMethod('mercadopago')}
-                            className={`w-full h-[64px] rounded-[20px] border flex items-center justify-between px-5 transition-all ${paymentMethod === 'mercadopago' ? 'bg-[#3E2723] border-[#3E2723]' : 'bg-[#FFF9EE] border-[#DBC8B6]'}`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <CreditCard className={`w-5 h-5 ${paymentMethod === 'mercadopago' ? 'text-[#FFF9EE]' : 'text-[#8A3A25]'}`} />
-                              <span className={`font-bold ${paymentMethod === 'mercadopago' ? 'text-[#FFF9EE]' : 'text-[#3E2723]'}`}>Mercado Pago (Pagar ahora)</span>
-                            </div>
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'mercadopago' ? 'border-[#C25E3B]' : 'border-[#DBC8B6]'}`}>
-                              {paymentMethod === 'mercadopago' && <div className="w-2.5 h-2.5 rounded-full bg-[#C25E3B]" />}
-                            </div>
-                          </button>
-
-                          <button
                             onClick={() => setPaymentMethod('cash')}
                             className={`w-full h-[64px] rounded-[20px] border flex items-center justify-between px-5 transition-all ${paymentMethod === 'cash' ? 'bg-[#3E2723] border-[#3E2723]' : 'bg-[#FFF9EE] border-[#DBC8B6]'}`}
                           >
                             <div className="flex items-center gap-3">
                               <Banknote className={`w-5 h-5 ${paymentMethod === 'cash' ? 'text-[#FFF9EE]' : 'text-[#8A3A25]'}`} />
-                              <span className={`font-bold ${paymentMethod === 'cash' ? 'text-[#FFF9EE]' : 'text-[#3E2723]'}`}>Pagar en la entrega</span>
+                              <span className={`font-bold ${paymentMethod === 'cash' ? 'text-[#FFF9EE]' : 'text-[#3E2723]'}`}>Efectivo / Transferencia</span>
                             </div>
                             <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'cash' ? 'border-[#C25E3B]' : 'border-[#DBC8B6]'}`}>
                               {paymentMethod === 'cash' && <div className="w-2.5 h-2.5 rounded-full bg-[#C25E3B]" />}
@@ -532,7 +500,7 @@ export default function CartSheet({
                       >
                         {loading
                           ? <Loader2 className="w-6 h-6 animate-spin" />
-                          : paymentMethod === 'mercadopago' ? "Pagar con Mercado Pago 🛍️" : "Confirmar Pedido 🛍️"
+                          : "Confirmar Pedido 🛍️"
                         }
                       </motion.button>
                       <button
@@ -563,7 +531,7 @@ export default function CartSheet({
                         </motion.div>
                         <div className="text-center space-y-2">
                           <h3 className="text-2xl font-black text-[#3E2723] tracking-tight">
-                            {paymentMethod === 'mercadopago' ? '¡Pago y Pedido Confirmados!' : '¡Pedido Confirmado!'}
+                            ¡Pedido Confirmado!
                           </h3>
                           <p className="text-[#A87B6A] font-semibold text-sm leading-relaxed px-4">
                             Tu pedido fue registrado exitosamente.<br />El equipo de <strong className="text-[#8A3A25]">El Hornerito</strong> te contactará por Whatsapp para {lastOrderDeliveryMethod === 'pickup' ? 'el retiro' : 'la entrega'}.

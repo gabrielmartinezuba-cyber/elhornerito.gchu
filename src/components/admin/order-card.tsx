@@ -3,7 +3,7 @@
 import { useTransition, useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { MessageCircle, CheckCheck, Loader2, XCircle } from "lucide-react"
-import { markOrderDelivered, cancelOrder } from "@/app/actions/orders"
+import { markOrderDelivered, cancelOrder, markOrderPaid } from "@/app/actions/orders"
 import { Order, OrderItem } from "@/types/database"
 
 type OrderItemWithName = OrderItem & { product_name: string }
@@ -49,6 +49,17 @@ export function OrderCard({ order, onDelivered, showActions = true, compact = fa
     })
   }
 
+  const handleMarkPaid = () => {
+    startTransition(async () => {
+      const result = await markOrderPaid(order.id)
+      if (result.success) {
+        // En este caso no quitamos de la lista si solo marcó como pagado, 
+        // pero necesitamos forzar un refresco si no se hace automático
+        window.location.reload()
+      }
+    })
+  }
+
   const handleCancel = () => {
     if (window.confirm("¿Seguro querés cancelar esta orden? Esta acción no se puede deshacer y el stock será devuelto al catálogo.")) {
       startTransition(async () => {
@@ -77,12 +88,12 @@ export function OrderCard({ order, onDelivered, showActions = true, compact = fa
           {/* Badges de Estado y Logística - Ocultos en modo compacto */}
           {!compact && (
             <div className="flex flex-row items-center gap-2 mt-2 whitespace-nowrap">
-              {order.payment_status === 'paid' || order.payment_status === 'approved' ? (
+              {order.payment_status === 'paid' ? (
                 <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
                   PAGO: SÍ
                 </span>
               ) : (
-                <span className="text-[10px] font-black uppercase tracking-widest bg-orange-100 text-orange-700 border border-orange-200 px-2 py-0.5 rounded-full shrink-0">
+                <span className="text-[10px] font-black uppercase tracking-widest bg-red-100 text-red-700 border border-red-200 px-2 py-0.5 rounded-full shrink-0 animate-pulse">
                   PAGO: NO
                 </span>
               )}
@@ -128,38 +139,56 @@ export function OrderCard({ order, onDelivered, showActions = true, compact = fa
 
       {/* Acciones — Alinhadas horizontalmente e compactas */}
       {showActions && !isDelivered && (
-        <div className="flex flex-row items-center gap-2">
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 h-9 bg-[#25D366] rounded-full flex items-center justify-center gap-1.5 text-white font-black text-[10px] uppercase tracking-wider shadow-sm active:scale-95 transition-transform"
-          >
-            <MessageCircle className="w-3.5 h-3.5 stroke-[2.5]" />
-            WhatsApp
-          </a>
+        <div className="flex flex-col gap-2">
+          {/* Fila 1: WhatsApp y Cancelar */}
+          <div className="flex items-center gap-2">
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 h-10 bg-[#25D366] rounded-xl flex items-center justify-center gap-1.5 text-white font-black text-[11px] uppercase tracking-wider shadow-sm active:scale-95 transition-transform"
+            >
+              <MessageCircle className="w-4 h-4 stroke-[2.5]" />
+              WhatsApp
+            </a>
 
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleCancel}
-            disabled={isPending}
-            className="flex-1 h-9 border border-red-200 bg-red-50 text-red-600 rounded-full flex items-center justify-center gap-1.5 font-black text-[10px] uppercase tracking-wider active:scale-95 transition-all disabled:opacity-50"
-          >
-            {isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5 stroke-[2.5]" />}
-            Cancelar
-          </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleCancel}
+              disabled={isPending}
+              className="flex-1 h-10 border border-red-200 bg-red-50 text-red-600 rounded-xl flex items-center justify-center gap-1.5 font-black text-[11px] uppercase tracking-wider active:scale-95 transition-all disabled:opacity-50"
+            >
+              {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4 stroke-[2.5]" />}
+              Cancelar
+            </motion.button>
+          </div>
 
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleDelivered}
-            disabled={isPending}
-            className="flex-1 h-9 bg-[#3E2723] rounded-full flex items-center justify-center gap-1.5 text-[#FFF9EE] font-black text-[10px] uppercase tracking-wider shadow-sm disabled:opacity-50 transition-all"
-          >
-            {isPending
-              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              : <><CheckCheck className="w-3.5 h-3.5 stroke-[2.5]" /> Entregado</>
-            }
-          </motion.button>
+          {/* Fila 2: Pagado y Entregado */}
+          <div className="flex items-center gap-2">
+            {order.payment_status !== 'paid' && (
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleMarkPaid}
+                disabled={isPending}
+                className="flex-1 h-10 bg-[#FFF9EE] border-2 border-emerald-600 text-emerald-700 rounded-xl flex items-center justify-center gap-1.5 font-black text-[11px] uppercase tracking-wider shadow-sm active:scale-95 transition-all disabled:opacity-50"
+              >
+                {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCheck className="w-4 h-4 text-emerald-600" />}
+                Pagado
+              </motion.button>
+            )}
+
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={handleDelivered}
+              disabled={isPending}
+              className="flex-1 h-10 bg-[#3E2723] rounded-xl flex items-center justify-center gap-1.5 text-[#FFF9EE] font-black text-[11px] uppercase tracking-wider shadow-sm disabled:opacity-50 transition-all"
+            >
+              {isPending
+                ? <Loader2 className="w-4 h-4 animate-spin" />
+                : <><CheckCheck className="w-4 h-4 stroke-[2.5]" /> Entregado</>
+              }
+            </motion.button>
+          </div>
         </div>
       )}
     </motion.div>

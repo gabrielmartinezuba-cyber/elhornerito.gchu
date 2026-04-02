@@ -68,9 +68,9 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
       customer_phone: customerPhone.trim(),
       customer_email: '',
       total_amount: total,
-      status: paymentMethod === 'mercadopago' ? 'pending' as const : 'paid' as const, // Status general de la orden
+      status: 'pending' as const, // Todas las órdenes nuevas entran como pendientes de entrega
       payment_method: paymentMethod,
-      payment_status: paymentMethod === 'mercadopago' ? 'pending' : paymentStatus,
+      payment_status: 'pending', // Por defecto no están pagadas (Fase 19)
       shipping_cost: deliveryMethod === 'pickup' ? 0 : shippingCost,
       delivery_method: deliveryMethod,
       mp_preference_id: null,
@@ -141,6 +141,24 @@ export async function markOrderDelivered(orderId: string): Promise<{ success: bo
     .update({ 
       status: 'delivered' as const,
       payment_status: 'paid' // Sincronización logística/financiera (Fase 15.1)
+    })
+    .eq('id', orderId)
+
+  if (error) return { success: false, error: error.message }
+
+  revalidatePath('/admin')
+  revalidatePath('/admin/orders')
+
+  return { success: true }
+}
+
+export async function markOrderPaid(orderId: string): Promise<{ success: boolean; error?: string }> {
+  const supabase = await createClient()
+
+  const { error } = await supabase
+    .from('orders')
+    .update({ 
+      payment_status: 'paid' 
     })
     .eq('id', orderId)
 

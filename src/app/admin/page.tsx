@@ -14,7 +14,7 @@ export default async function AdminDashboardPage() {
   const { data: activeOrdersRaw } = await supabase
     .from('orders')
     .select('*, order_items(*)')
-    .eq('status', 'paid')
+    .eq('status', 'pending')
     .order('created_at', { ascending: false })
 
   const activeOrders = (activeOrdersRaw as unknown as OrderWithItems[]) || []
