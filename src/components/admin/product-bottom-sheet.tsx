@@ -205,19 +205,25 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
                         {previews.map((src, i) => (
                           <div key={i} className="relative w-24 h-24 rounded-[18px] overflow-hidden border border-[#DBC8B6] shadow-md shrink-0">
                             <img src={src} alt={`Foto ${i+1}`} className="w-full h-full object-cover" />
-                            {/* Control de Orden (Fase 17) */}
+                            {/* Control de Orden por Botones (Fase 17.1) */}
                             {previews.length > 1 && (
-                              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-lg px-1.5 py-0.5 border border-[#8A3A25]/30 shadow-sm flex items-center">
-                                <input 
-                                  type="text"
-                                  inputMode="numeric"
-                                  value={i + 1}
-                                  onChange={(e) => {
-                                    const val = e.target.value.replace(/\D/g, '')
-                                    if (val) handleReorder(i, val)
-                                  }}
-                                  className="w-5 text-center bg-transparent font-black text-[#8A3A25] text-[10px] outline-none"
-                                />
+                              <div className="absolute bottom-1 left-0 right-0 flex justify-center">
+                                <div className="bg-white/95 backdrop-blur-sm rounded-xl px-1.5 py-1 border border-[#8A3A25]/20 shadow-lg flex items-center gap-1.5">
+                                  {[1, 2, 3].slice(0, previews.length).map((pos) => (
+                                    <button
+                                      key={pos}
+                                      type="button"
+                                      onClick={() => handleReorder(i, pos.toString())}
+                                      className={`w-5 h-5 rounded-lg flex items-center justify-center font-black text-[10px] transition-all active:scale-90 ${
+                                        i + 1 === pos 
+                                          ? 'bg-[#8A3A25] text-white shadow-sm' 
+                                          : 'text-[#8A3A25]/40 bg-[#8A3A25]/5 hover:bg-[#8A3A25]/10'
+                                      }`}
+                                    >
+                                      {pos}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
                             )}
                           </div>
