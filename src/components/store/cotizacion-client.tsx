@@ -13,9 +13,12 @@ export default function CotizacionClient({ products }: { products: Product[] }) 
   const [step, setStep] = useState<Step>("select")
   
   const availableCategories = Array.from(new Set(products.map(p => p.category)))
-  const [activeCategory, setActiveCategory] = useState<Category>('Dulce')
+  
+  // Orden deseado: Salado, Dulce, A pedido (Fase 17)
+  const categoryOrder: Category[] = ['Salado', 'Dulce', 'a_pedido']
+  const categories = categoryOrder.filter(cat => availableCategories.includes(cat))
 
-  const categories = availableCategories
+  const [activeCategory, setActiveCategory] = useState<Category>(categories[0] || 'Salado')
 
   // Selected products
   const [selected, setSelected] = useState<Set<string>>(new Set())

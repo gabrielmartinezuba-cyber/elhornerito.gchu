@@ -210,9 +210,12 @@ export default function StorefrontClient({
   subtitle?: string
 }) {
   const availableCategories = Array.from(new Set(initialProducts.map(p => p.category)))
-  const [activeCategory, setActiveCategory] = useState<Category>(availableCategories[0] || 'Dulce')
-
-  const categories = availableCategories
+  
+  // Orden deseado: Salado, Dulce, A pedido (Fase 17)
+  const categoryOrder: Category[] = ['Salado', 'Dulce', 'a_pedido']
+  const categories = categoryOrder.filter(cat => availableCategories.includes(cat))
+  
+  const [activeCategory, setActiveCategory] = useState<Category>(categories[0] || 'Salado')
 
   // Separar con stock primero, sin stock al final
   const sorted = [...initialProducts].sort((a, b) => {

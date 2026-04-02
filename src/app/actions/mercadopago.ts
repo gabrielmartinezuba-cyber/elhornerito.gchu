@@ -42,18 +42,19 @@ export async function createPreference(orderId: string) {
   }
 
   // 4. Crear preferencia con back_urls para retorno
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, "");
+  
   const preference = new Preference(client);
   const response = await preference.create({
     body: {
       items,
       back_urls: {
-        success: `${process.env.NEXT_PUBLIC_APP_URL}/?status=approved&order_id=${orderId}`,
-        failure: `${process.env.NEXT_PUBLIC_APP_URL}/?status=failure&order_id=${orderId}`,
-        pending: `${process.env.NEXT_PUBLIC_APP_URL}/?status=pending&order_id=${orderId}`,
+        success: `${appUrl}/?status=approved&order_id=${orderId}`,
+        failure: `${appUrl}/?status=failure&order_id=${orderId}`,
+        pending: `${appUrl}/?status=pending&order_id=${orderId}`,
       },
       auto_return: 'approved',
       external_reference: orderId,
-      notification_url: 'https://tu-webhook-url.com/api/mercadopago/webhook', // Opcional para el futuro
     }
   });
 

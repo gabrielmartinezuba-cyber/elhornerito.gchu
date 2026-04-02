@@ -83,6 +83,29 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
     }
   }
 
+  const handleReorder = (currentIndex: number, newIndexStr: string) => {
+    const newIdx = parseInt(newIndexStr) - 1
+    if (isNaN(newIdx) || newIdx < 0 || newIdx >= previews.length || newIdx === currentIndex) return
+
+    setPreviews(prev => {
+      const next = [...prev]
+      const temp = next[currentIndex]
+      next[currentIndex] = next[newIdx]
+      next[newIdx] = temp
+      return next
+    })
+
+    if (files.length > 0) {
+      setFiles(prev => {
+        const next = [...prev]
+        const temp = next[currentIndex]
+        next[currentIndex] = next[newIdx]
+        next[newIdx] = temp
+        return next
+      })
+    }
+  }
+
   const uploadFiles = async (): Promise<string[]> => {
     if (!files.length) return previews // usar previews existentes si no hay nuevas
     const supabase = createClient()
@@ -171,8 +194,8 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
               <div className="px-6 py-6 pb-40">
                 <form id="productForm" onSubmit={handleSubmit} className="space-y-5">
 
-                  {/* Multi Image Upload */}
-                  <div>
+                  {/* Multi Image Upload (Fase 17) */}
+                  <div className="space-y-2">
                     <label className="text-[11px] font-black uppercase tracking-widest text-[#8A3A25] pl-1 mb-2 block">
                       Fotos (hasta 3)
                     </label>
@@ -182,23 +205,40 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
                         {previews.map((src, i) => (
                           <div key={i} className="relative w-24 h-24 rounded-[18px] overflow-hidden border border-[#DBC8B6] shadow-md shrink-0">
                             <img src={src} alt={`Foto ${i+1}`} className="w-full h-full object-cover" />
+                            {/* Control de Orden (Fase 17) */}
+                            {previews.length > 1 && (
+                              <div className="absolute bottom-1 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur-sm rounded-lg px-1.5 py-0.5 border border-[#8A3A25]/30 shadow-sm flex items-center">
+                                <input 
+                                  type="text"
+                                  inputMode="numeric"
+                                  value={i + 1}
+                                  onChange={(e) => {
+                                    const val = e.target.value.replace(/\D/g, '')
+                                    if (val) handleReorder(i, val)
+                                  }}
+                                  className="w-5 text-center bg-transparent font-black text-[#8A3A25] text-[10px] outline-none"
+                                />
+                              </div>
+                            )}
                           </div>
                         ))}
-                        <button
-                          type="button"
-                          onClick={() => !compressing && fileInputRef.current?.click()}
-                          disabled={compressing}
-                          className="w-24 h-24 rounded-[18px] border border-dashed border-[#A87B6A]/50 bg-[#EAE2D0]/40 flex flex-col items-center justify-center text-[#8A3A25] shrink-0 active:scale-95 transition-transform disabled:opacity-50"
-                        >
-                          {compressing ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                          ) : (
-                            <>
-                              <Upload className="w-5 h-5 mb-1" />
-                              <span className="text-[9px] font-black uppercase tracking-wider">Cambiar</span>
-                            </>
-                          )}
-                        </button>
+                        {previews.length < 3 && (
+                          <button
+                            type="button"
+                            onClick={() => !compressing && fileInputRef.current?.click()}
+                            disabled={compressing}
+                            className="w-24 h-24 rounded-[18px] border border-dashed border-[#A87B6A]/50 bg-[#EAE2D0]/40 flex flex-col items-center justify-center text-[#8A3A25] shrink-0 active:scale-95 transition-transform disabled:opacity-50"
+                          >
+                            {compressing ? (
+                              <Loader2 className="w-5 h-5 animate-spin" />
+                            ) : (
+                              <>
+                                <Upload className="w-5 h-5 mb-1" />
+                                <span className="text-[9px] font-black uppercase tracking-wider">Añadir</span>
+                              </>
+                            )}
+                          </button>
+                        )}
                       </div>
                     ) : (
                       <div
@@ -273,8 +313,8 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
                         onChange={(e) => setCategory(e.target.value as Category)}
                         className="w-full h-[60px] px-5 rounded-[20px] bg-[#FFF9EE] border border-[#DBC8B6] focus:border-[#C25E3B] focus:bg-white shadow-sm outline-none text-[#3E2723] text-[16px] font-semibold appearance-none pr-10"
                       >
-                        <option value="Dulce">Dulce</option>
                         <option value="Salado">Salado</option>
+                        <option value="Dulce">Dulce</option>
                         <option value="Congelado">Congelado</option>
                         <option value="a_pedido">A pedido</option>
                       </select>
