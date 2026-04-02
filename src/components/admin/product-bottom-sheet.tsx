@@ -51,12 +51,12 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
-    
+
     setErrorMsg(null)
     setCompressing(true)
 
     const selected = Array.from(e.target.files).slice(0, 3)
-    
+
     try {
       const options = {
         maxSizeMB: 0.2, // 200 KB
@@ -69,7 +69,7 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
       )
 
       // Convertimos los blobs resultantes a archivos con nombre original
-      const finalFiles = compressedFiles.map((blob, i) => 
+      const finalFiles = compressedFiles.map((blob, i) =>
         new File([blob], selected[i].name, { type: selected[i].type })
       )
 
@@ -204,7 +204,7 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
                       <div className="flex gap-3">
                         {previews.map((src, i) => (
                           <div key={i} className="relative w-24 h-24 rounded-[18px] overflow-hidden border border-[#DBC8B6] shadow-md shrink-0">
-                            <img src={src} alt={`Foto ${i+1}`} className="w-full h-full object-cover" />
+                            <img src={src} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
                             {/* Control de Orden por Botones (Fase 17.1) */}
                             {previews.length > 1 && (
                               <div className="absolute bottom-1 left-0 right-0 flex justify-center">
@@ -214,11 +214,10 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
                                       key={pos}
                                       type="button"
                                       onClick={() => handleReorder(i, pos.toString())}
-                                      className={`w-5 h-5 rounded-lg flex items-center justify-center font-black text-[10px] transition-all active:scale-90 ${
-                                        i + 1 === pos 
-                                          ? 'bg-[#8A3A25] text-white shadow-sm' 
+                                      className={`w-5 h-5 rounded-lg flex items-center justify-center font-black text-[10px] transition-all active:scale-90 ${i + 1 === pos
+                                          ? 'bg-[#8A3A25] text-white shadow-sm'
                                           : 'text-[#8A3A25]/40 bg-[#8A3A25]/5 hover:bg-[#8A3A25]/10'
-                                      }`}
+                                        }`}
                                     >
                                       {pos}
                                     </button>

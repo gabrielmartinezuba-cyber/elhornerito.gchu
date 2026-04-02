@@ -156,34 +156,34 @@ function ProductCard({ product }: { product: Product }) {
           <p className="font-black text-[#C25E3B] mt-1">${mounted ? product.price.toLocaleString('es-AR') : product.price}</p>
 
           <div className="flex items-center gap-3 mt-2">
-              <>
-                <button
-                  onClick={handleDecrease}
-                  disabled={qty === 0}
-                  className={`w-8 h-8 rounded-full border border-[#DBC8B6] flex items-center justify-center text-[#8A3A25] transition-colors shrink-0 ${qty === 0 ? "bg-[#EAE2D0]/30 opacity-40 cursor-not-allowed" : "bg-[#EAE2D0] active:bg-[#DBC8B6]"}`}
-                >
-                  <Minus className="w-4 h-4 stroke-[3]" />
-                </button>
+            <>
+              <button
+                onClick={handleDecrease}
+                disabled={qty === 0}
+                className={`w-8 h-8 rounded-full border border-[#DBC8B6] flex items-center justify-center text-[#8A3A25] transition-colors shrink-0 ${qty === 0 ? "bg-[#EAE2D0]/30 opacity-40 cursor-not-allowed" : "bg-[#EAE2D0] active:bg-[#DBC8B6]"}`}
+              >
+                <Minus className="w-4 h-4 stroke-[3]" />
+              </button>
 
-                <span className="font-bold text-[#3E2723] min-w-[20px] text-center">
-                  {qty}
-                </span>
+              <span className="font-bold text-[#3E2723] min-w-[20px] text-center">
+                {qty}
+              </span>
 
-                <button
-                  onClick={handleAdd}
-                  disabled={atMax || outOfStock}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${atMax || outOfStock ? "bg-[#EAE2D0] text-[#A87B6A] border border-[#DBC8B6] cursor-not-allowed" : "bg-[#C25E3B] text-white shadow-[0_4px_12px_rgba(194,94,59,0.3)] active:scale-90"}`}
-                >
-                  <Plus className="w-4 h-4 stroke-[3]" />
-                </button>
+              <button
+                onClick={handleAdd}
+                disabled={atMax || outOfStock}
+                className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-all ${atMax || outOfStock ? "bg-[#EAE2D0] text-[#A87B6A] border border-[#DBC8B6] cursor-not-allowed" : "bg-[#C25E3B] text-white shadow-[0_4px_12px_rgba(194,94,59,0.3)] active:scale-90"}`}
+              >
+                <Plus className="w-4 h-4 stroke-[3]" />
+              </button>
 
-                {outOfStock && (
-                  <span className="text-[10px] font-black text-[#A87B6A] uppercase tracking-widest ml-1">Sin Stock</span>
-                )}
-                {!outOfStock && atMax && qty > 0 && (
-                  <span className="text-[10px] font-black text-[#A87B6A]/60 uppercase tracking-widest ml-1">Tope Stock</span>
-                )}
-              </>
+              {outOfStock && (
+                <span className="text-[10px] font-black text-[#A87B6A] uppercase tracking-widest ml-1">Sin Stock</span>
+              )}
+              {!outOfStock && atMax && qty > 0 && (
+                <span className="text-[10px] font-black text-[#A87B6A]/60 uppercase tracking-widest ml-1">Tope Stock</span>
+              )}
+            </>
           </div>
         </div>
       </div>
@@ -196,13 +196,13 @@ function ProductCard({ product }: { product: Product }) {
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
-export default function StorefrontClient({ 
+export default function StorefrontClient({
   initialProducts,
   shippingCost,
   freeShippingThreshold,
   title = "El Hornerito",
   subtitle = "Cosas dulces y saladas"
-}: { 
+}: {
   initialProducts: Product[],
   shippingCost: number,
   freeShippingThreshold: number,
@@ -210,12 +210,15 @@ export default function StorefrontClient({
   subtitle?: string
 }) {
   const availableCategories = Array.from(new Set(initialProducts.map(p => p.category)))
-  
-  // Orden deseado: Salado, Dulce, A pedido (Fase 17)
-  const categoryOrder: Category[] = ['Salado', 'Dulce', 'a_pedido']
+
+  // Orden deseado: Salado, Dulce, A pedido (Fase 17) + Congelado como fallback (Fase 18.3)
+  const categoryOrder: Category[] = ['Salado', 'Dulce', 'a_pedido', 'Congelado']
   const categories = categoryOrder.filter(cat => availableCategories.includes(cat))
-  
-  const [activeCategory, setActiveCategory] = useState<Category>(categories[0] || 'Salado')
+
+  // Selecciona la primera disponible del orden, o la primera que haya en la DB
+  const [activeCategory, setActiveCategory] = useState<Category>(
+    categories.length > 0 ? categories[0] : (availableCategories[0] || 'Salado')
+  )
 
   // Separar con stock primero, sin stock al final
   const sorted = [...initialProducts].sort((a, b) => {
@@ -227,11 +230,11 @@ export default function StorefrontClient({
   const filtered = sorted.filter(p => {
     const pCat = p.category?.toLowerCase() || ''
     const aCat = activeCategory?.toLowerCase() || ''
-    
+
     // Normalizar 'congelado' y 'congelados' (singular/plural)
     const isFrozen = (cat: string) => cat === 'congelado' || cat === 'congelados'
     if (isFrozen(pCat) && isFrozen(aCat)) return true
-    
+
     return pCat === aCat
   })
 
@@ -268,11 +271,10 @@ export default function StorefrontClient({
                   key={cat}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setActiveCategory(cat)}
-                  className={`flex-1 py-2 rounded-full text-[11px] font-bold transition-all shadow-sm ${
-                    activeCategory === cat
+                  className={`flex-1 py-2 rounded-full text-[11px] font-bold transition-all shadow-sm ${activeCategory === cat
                       ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]"
                       : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"
-                  }`}
+                    }`}
                 >
                   {cat === "a_pedido" ? "A pedido" : cat}
                 </motion.button>
@@ -294,9 +296,9 @@ export default function StorefrontClient({
           )}
         </div>
 
-        <CartSheet 
-          shippingCost={shippingCost} 
-          freeShippingThreshold={freeShippingThreshold} 
+        <CartSheet
+          shippingCost={shippingCost}
+          freeShippingThreshold={freeShippingThreshold}
         />
         <StorefrontNav />
       </main>
