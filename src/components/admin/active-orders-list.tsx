@@ -28,15 +28,38 @@ export function ActiveOrdersList({ initialOrders }: ActiveOrdersListProps) {
     )
   }
 
+  const stockOrders = orders.filter(o => o.order_type === 'stock')
+  const preorderOrders = orders.filter(o => o.order_type === 'preorder')
+
+  const renderColumn = (title: string, columnOrders: OrderWithItems[]) => (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between pb-2 border-b border-[#DBC8B6]">
+        <h4 className="font-black text-[#3E2723] text-sm uppercase tracking-wider">{title}</h4>
+        <span className="text-[10px] font-black text-[#FFF9EE] bg-[#A87B6A] px-2 py-0.5 rounded-full shadow-sm">{columnOrders.length}</span>
+      </div>
+      <AnimatePresence>
+        {columnOrders.length === 0 ? (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-6 flex flex-col items-center opacity-50">
+             <PackageOpen className="w-8 h-8 mb-2 text-[#A87B6A]" />
+             <p className="text-[10px] font-bold uppercase tracking-wider text-[#A87B6A]">Vacío</p>
+          </motion.div>
+        ) : (
+          columnOrders.map(order => (
+            <OrderCard
+              key={order.id}
+              order={order}
+              onDelivered={handleDelivered}
+            />
+          ))
+        )}
+      </AnimatePresence>
+    </div>
+  )
+
   return (
-    <AnimatePresence>
-      {orders.map(order => (
-        <OrderCard
-          key={order.id}
-          order={order}
-          onDelivered={handleDelivered}
-        />
-      ))}
-    </AnimatePresence>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+      {renderColumn("En Stock", stockOrders)}
+      {renderColumn("A Pedido", preorderOrders)}
+    </div>
   )
 }

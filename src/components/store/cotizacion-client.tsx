@@ -14,8 +14,8 @@ export default function CotizacionClient({ products }: { products: Product[] }) 
   
   const availableCategories = Array.from(new Set(products.map(p => p.category)))
   
-  // Orden deseado: Salado, Dulce, A pedido (Fase 17)
-  const categoryOrder: Category[] = ['Salado', 'Dulce', 'a_pedido']
+  // Orden deseado: Salado, Dulce (Fase 17)
+  const categoryOrder: Category[] = ['Salado', 'Dulce']
   const categories = categoryOrder.filter(cat => availableCategories.includes(cat))
 
   const [activeCategory, setActiveCategory] = useState<Category>(categories[0] || 'Salado')
@@ -98,7 +98,7 @@ export default function CotizacionClient({ products }: { products: Product[] }) 
                   onClick={() => setActiveCategory(cat)}
                   className={`flex-1 py-2 rounded-full text-[11px] font-bold transition-all shadow-sm ${activeCategory === cat ? "bg-[#C25E3B] text-[#FFF9EE] shadow-[0_4px_15px_rgba(194,94,59,0.3)]" : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"}`}
                 >
-                  {cat === "a_pedido" ? "A pedido" : cat}
+                  {cat}
                 </button>
               ))}
             </div>

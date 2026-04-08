@@ -14,6 +14,7 @@ interface PlaceOrderPayload {
   paymentStatus: string
   shippingCost: number
   deliveryMethod: string
+  orderType: 'stock' | 'preorder'
 }
 
 export interface PlaceOrderResult {
@@ -77,6 +78,7 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
       mp_preference_id: null,
       mp_payment_id: null,
       mp_merchant_order_id: null,
+      order_type: payload.orderType
     })
     .select('id')
     .single()
@@ -104,26 +106,27 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
     return { success: false, error: `Error al guardar productos: ${itemsError.message}` }
   }
 
-  // 4. Descontar stock (excepto a_pedido)
-  for (const item of items) {
-    const dbProduct = dbProducts?.find(p => p.id === item.product.id)
-    if (dbProduct?.category === 'a_pedido') continue
+  // 4. Descontar stock (excepto preorder)
+  if (payload.orderType !== 'preorder') {
+    for (const item of items) {
+      const dbProduct = dbProducts?.find(p => p.id === item.product.id)
 
-    const { error: stockUpdateError } = await supabase.rpc('decrement_stock', {
-      row_id: item.product.id,
-      quantity_to_remove: item.quantity
-    })
+      const { error: stockUpdateError } = await supabase.rpc('decrement_stock', {
+        row_id: item.product.id,
+        quantity_to_remove: item.quantity
+      })
 
-    // Si el RPC no existe, usamos update normal
-    if (stockUpdateError) {
-      const newStock = (dbProduct?.stock_quantity ?? 0) - item.quantity
-      await supabase
-        .from('products')
-        .update({ 
-          stock_quantity: newStock,
-          in_stock: newStock > 0 
-        })
-        .eq('id', item.product.id)
+      // Si el RPC no existe, usamos update normal
+      if (stockUpdateError) {
+        const newStock = (dbProduct?.stock_quantity ?? 0) - item.quantity
+        await supabase
+          .from('products')
+          .update({ 
+            stock_quantity: newStock,
+            in_stock: newStock > 0 
+          })
+          .eq('id', item.product.id)
+      }
     }
   }
 

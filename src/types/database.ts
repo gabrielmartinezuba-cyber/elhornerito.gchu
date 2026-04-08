@@ -2,10 +2,11 @@
 // Tipos de dominio
 // ────────────────────────────────────────────────────────────────────────────
 
-export type Category = 'Dulce' | 'Salado' | 'Congelado' | 'a_pedido';
+export type Category = 'Dulce' | 'Salado' | 'Congelado';
 
 export type OrderStatus = 'pending' | 'paid' | 'delivered' | 'cancelled';
 export type DeliveryMethod = 'shipping' | 'pickup';
+export type OrderType = 'stock' | 'preorder';
 
 
 export interface Product {
@@ -38,6 +39,7 @@ export interface Order {
   mp_preference_id: string | null;
   mp_payment_id: string | null;
   mp_merchant_order_id: string | null;
+  order_type: OrderType;
 }
 
 export interface OrderItem {
@@ -118,6 +120,7 @@ export interface Database {
           mp_preference_id?: string | null;
           mp_payment_id?: string | null;
           mp_merchant_order_id?: string | null;
+          order_type?: OrderType;
         };
         Update: {
           id?: string;
@@ -134,6 +137,7 @@ export interface Database {
           mp_preference_id?: string | null;
           mp_payment_id?: string | null;
           mp_merchant_order_id?: string | null;
+          order_type?: OrderType;
         };
       };
       order_items: {

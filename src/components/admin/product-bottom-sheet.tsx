@@ -321,7 +321,6 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
                         <option value="Salado">Salado</option>
                         <option value="Dulce">Dulce</option>
                         <option value="Congelado">Congelado</option>
-                        <option value="a_pedido">A pedido</option>
                       </select>
                       <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#A87B6A]">
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" /></svg>

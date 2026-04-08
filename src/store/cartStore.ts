@@ -5,11 +5,12 @@ import type { Product } from '@/types/database'
 export interface CartItem {
   product: Product
   quantity: number
+  isPreorder?: boolean
 }
 
 interface CartState {
   items: CartItem[]
-  addItem: (product: Product) => void
+  addItem: (product: Product, isPreorder?: boolean) => void
   removeItem: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   clearCart: () => void
@@ -22,26 +23,25 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
       
-      addItem: (product) => {
+      addItem: (product, isPreorder = false) => {
         set((state) => {
-          const isAPedido = product.category === 'a_pedido'
           const existing = state.items.find((item) => item.product.id === product.id)
           if (existing) {
-            // Validar stock antes de sumar (excepto a_pedido)
-            if (!isAPedido && existing.quantity >= product.stock_quantity) return state
+            // Validar stock antes de sumar (excepto si es preorder)
+            if (!isPreorder && !existing.isPreorder && existing.quantity >= product.stock_quantity) return state
 
             return {
               items: state.items.map((item) =>
                 item.product.id === product.id
-                  ? { ...item, quantity: item.quantity + 1 }
+                  ? { ...item, quantity: item.quantity + 1, isPreorder: isPreorder || item.isPreorder }
                   : item
               ),
             }
           }
-          // Si el producto no tiene stock, no añadir (excepto a_pedido)
-          if (!isAPedido && product.stock_quantity <= 0) return state
+          // Si el producto no tiene stock, no añadir (excepto isPreorder)
+          if (!isPreorder && product.stock_quantity <= 0) return state
 
-          return { items: [...state.items, { product, quantity: 1 }] }
+          return { items: [...state.items, { product, quantity: 1, isPreorder }] }
         })
       },
       
@@ -62,13 +62,12 @@ export const useCartStore = create<CartState>()(
           const item = state.items.find(i => i.product.id === productId)
           if (!item) return state
 
-          // Validar stock: quantity no puede superar product.stock_quantity (excepto a_pedido)
-          const isAPedido = item.product.category === 'a_pedido'
-          const finalQty = isAPedido ? quantity : Math.min(quantity, item.product.stock_quantity)
+          // Validar stock: quantity no puede superar product.stock_quantity (excepto preorder)
+          const maxQty = item.isPreorder ? quantity : Math.min(quantity, item.product.stock_quantity)
 
           return {
             items: state.items.map((item) =>
-              item.product.id === productId ? { ...item, quantity: finalQty } : item
+              item.product.id === productId ? { ...item, quantity: maxQty } : item
             ),
           }
         })

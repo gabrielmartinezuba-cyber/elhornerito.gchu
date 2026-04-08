@@ -6,7 +6,7 @@ import { Plus, Minus, PackageOpen, X, ChevronLeft, ChevronRight, Truck } from "l
 import CartSheet from "@/components/store/cart-sheet"
 import StorefrontNav from "@/components/store/storefront-nav"
 import { useCartStore } from "@/store/cartStore"
-import { Product, Category } from "@/types/database"
+import { Product, Category, OrderType } from "@/types/database"
 
 const CATEGORIES: ("Todos" | Category)[] = ["Todos", "Dulce", "Salado"]
 
@@ -89,7 +89,7 @@ function GalleryModal({ images, initialIndex, onClose }: { images: string[]; ini
 }
 
 // ─── Product Card ─────────────────────────────────────────────────────────────
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({ product, orderMode }: { product: Product; orderMode: OrderType }) {
   const items = useCartStore(s => s.items)
   const addItem = useCartStore(s => s.addItem)
   const updateQuantity = useCartStore(s => s.updateQuantity)
@@ -109,12 +109,12 @@ function ProductCard({ product }: { product: Product }) {
       ? [product.image_url]
       : []
 
-  const outOfStock = product.stock_quantity === 0 && product.category !== 'a_pedido'
-  const atMax = product.category !== 'a_pedido' && qty >= product.stock_quantity
+  const outOfStock = orderMode === 'stock' && product.stock_quantity === 0
+  const atMax = orderMode === 'stock' && qty >= product.stock_quantity
 
   const handleAdd = () => {
     if (outOfStock || atMax) return
-    addItem(product)
+    addItem(product, orderMode === 'preorder')
   }
 
   const handleDecrease = () => {
@@ -211,17 +211,23 @@ export default function StorefrontClient({
 }) {
   const availableCategories = Array.from(new Set(initialProducts.map(p => p.category)))
 
-  // Orden deseado: Salado, Dulce, A pedido (Fase 17) + Congelado como fallback (Fase 18.3)
-  const categoryOrder: Category[] = ['Salado', 'Dulce', 'a_pedido', 'Congelado']
+  // Orden deseado: Salado, Dulce, Congelado
+  const categoryOrder: Category[] = ['Salado', 'Dulce', 'Congelado']
   const categories = categoryOrder.filter(cat => availableCategories.includes(cat))
 
-  // Selecciona la primera disponible del orden, o la primera que haya en la DB
   const [activeCategory, setActiveCategory] = useState<Category>(
     categories.length > 0 ? categories[0] : (availableCategories[0] || 'Salado')
   )
 
-  // Separar con stock primero, sin stock al final
-  const sorted = [...initialProducts].sort((a, b) => {
+  const [orderMode, setOrderMode] = useState<OrderType>('stock')
+
+  // Separar con stock primero, sin stock al final, filtrando también por el mode
+  let filteredByMode = initialProducts
+  if (orderMode === 'stock') {
+    filteredByMode = initialProducts.filter(p => p.stock_quantity > 0)
+  }
+
+  const sorted = [...filteredByMode].sort((a, b) => {
     if (a.stock_quantity === 0 && b.stock_quantity !== 0) return 1
     if (a.stock_quantity !== 0 && b.stock_quantity === 0) return -1
     return 0
@@ -263,7 +269,31 @@ export default function StorefrontClient({
             </div>
           </div>
 
-          {/* Category Pills */}
+          {/* Mode Pills (En Stock / A Pedido) */}
+          <div className="px-4 pb-3 flex gap-2">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setOrderMode('stock')}
+              className={`flex-1 py-3 rounded-2xl text-[12px] font-black uppercase tracking-wider transition-all shadow-sm ${orderMode === 'stock'
+                  ? "bg-[#3E2723] text-[#FFF9EE] shadow-[0_4px_15px_rgba(62,39,35,0.3)]"
+                  : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"
+                }`}
+            >
+              En Stock
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setOrderMode('preorder')}
+              className={`flex-1 py-3 rounded-2xl text-[12px] font-black uppercase tracking-wider transition-all shadow-sm ${orderMode === 'preorder'
+                  ? "bg-[#3E2723] text-[#FFF9EE] shadow-[0_4px_15px_rgba(62,39,35,0.3)]"
+                  : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"
+                }`}
+            >
+              A Pedido
+            </motion.button>
+          </div>
+
+          {/* Category Pills (Sub-filtros) */}
           {availableCategories.length > 1 && (
             <div className="px-4 pb-4 flex gap-2">
               {categories.map((cat) => (
@@ -276,7 +306,7 @@ export default function StorefrontClient({
                       : "bg-[#FFF9EE] text-[#8A3A25] border border-[#DBC8B6]"
                     }`}
                 >
-                  {cat === "a_pedido" ? "A pedido" : cat}
+                  {cat}
                 </motion.button>
               ))}
             </div>
@@ -292,7 +322,7 @@ export default function StorefrontClient({
               <p className="text-[#A87B6A] text-sm mt-1 font-semibold">Vuelve pronto a revisar.</p>
             </div>
           ) : (
-            filtered.map(p => <ProductCard key={p.id} product={p} />)
+            filtered.map(p => <ProductCard key={p.id} product={p} orderMode={orderMode} />)
           )}
         </div>
 
