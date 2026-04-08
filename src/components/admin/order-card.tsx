@@ -82,12 +82,11 @@ export function OrderCard({ order, onDelivered, showActions = true, compact = fa
 
   return (
     <motion.div
-      layout
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+      transition={{ duration: 0.15, ease: "easeOut" }}
       onClick={() => setIsExpanded(!isExpanded)}
-      className={`w-full bg-[#FFF9EE] border border-[#DBC8B6] rounded-[22px] shadow-[0_4px_20px_rgba(62,39,35,0.06)] transition-all cursor-pointer overflow-hidden ${compact ? 'p-3 space-y-2.5' : (isExpanded ? 'p-5 space-y-4' : 'p-4')}`}
+      className={`w-full bg-[#FFF9EE] border border-[#DBC8B6] rounded-[22px] shadow-[0_4px_20px_rgba(62,39,35,0.06)] cursor-pointer overflow-hidden transition-all duration-150 ease-in-out ${compact ? 'p-3 space-y-2.5' : (isExpanded ? 'p-5 space-y-4' : 'p-4')}`}
     >
       {/* ─── VISTA COMPACTA ─── */}
       {!isExpanded ? (
@@ -104,10 +103,8 @@ export function OrderCard({ order, onDelivered, showActions = true, compact = fa
         </div>
       ) : (
       /* ─── VISTA EXPANDIDA ─── */
-      <motion.div 
-        initial={{ opacity: 0 }} 
-        animate={{ opacity: 1 }} 
-        className="space-y-4"
+      <div 
+        className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-150"
         onClick={(e) => e.stopPropagation()} // Para evitar que clics internos colapsen la tarjeta
       >
         {/* Header: Nombre + Badge estado + Total */}
@@ -223,7 +220,7 @@ export function OrderCard({ order, onDelivered, showActions = true, compact = fa
           </div>
         </div>
         )}
-      </motion.div>
+      </div>
       )}
     </motion.div>
   )
