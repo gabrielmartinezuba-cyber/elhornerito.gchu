@@ -126,7 +126,7 @@ export default function ProductsAdminPage() {
               </div>
               <div className="flex-1 min-w-0 pr-2">
                 <h3 className="font-extrabold text-[#3E2723] line-clamp-2 leading-tight text-[16px] min-h-[2.5rem] flex items-center">{item.name}</h3>
-                <p className="text-[11px] text-[#8A3A25] font-black uppercase tracking-widest mt-1">{item.category} • Stock: Sí</p>
+                <p className="text-[11px] text-[#8A3A25] font-black uppercase tracking-widest mt-1">{item.category} • STOCK: {item.stock_quantity}</p>
                 <p className="font-black text-[#C25E3B] mt-1.5 text-[15px]">${item.price.toLocaleString('es-AR')}</p>
               </div>
               

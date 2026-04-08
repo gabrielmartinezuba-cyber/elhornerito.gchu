@@ -52,9 +52,9 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
       return { success: false, error: `El producto ${item.product.name} ya no existe.` }
     }
     
-    // EXCEPCIÓN: Los productos 'a_pedido' tienen stock infinito lógico
-    const isAPedido = dbProduct.category === 'a_pedido'
-    if (!isAPedido && dbProduct.stock_quantity < item.quantity) {
+    // EXCEPCIÓN: Órdenes 'preorder' (A pedido) omiten esta validación
+    const isPreorder = payload.orderType === 'preorder'
+    if (!isPreorder && dbProduct.stock_quantity < item.quantity) {
       return { 
         success: false, 
         error: `Stock insuficiente para ${item.product.name}. Disponible: ${dbProduct.stock_quantity}` 
@@ -110,23 +110,15 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
   if (payload.orderType !== 'preorder') {
     for (const item of items) {
       const dbProduct = dbProducts?.find(p => p.id === item.product.id)
-
-      const { error: stockUpdateError } = await supabase.rpc('decrement_stock', {
-        row_id: item.product.id,
-        quantity_to_remove: item.quantity
-      })
-
-      // Si el RPC no existe, usamos update normal
-      if (stockUpdateError) {
-        const newStock = (dbProduct?.stock_quantity ?? 0) - item.quantity
-        await supabase
-          .from('products')
-          .update({ 
-            stock_quantity: newStock,
-            in_stock: newStock > 0 
-          })
-          .eq('id', item.product.id)
-      }
+      const currentStock = dbProduct?.stock_quantity ?? 0
+      const newStock = Math.max(0, currentStock - item.quantity)
+      await supabase
+        .from('products')
+        .update({ 
+          stock_quantity: newStock,
+          in_stock: newStock > 0 
+        })
+        .eq('id', item.product.id)
     }
   }
 
