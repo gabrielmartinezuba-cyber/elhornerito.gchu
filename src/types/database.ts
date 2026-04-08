@@ -55,6 +55,14 @@ export interface StoreSettings {
   free_shipping_threshold: number;
 }
 
+export interface AdminPushSub {
+  id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 // Database schema — compatible con supabase-js v2.46 / ssr v0.5
 // ────────────────────────────────────────────────────────────────────────────
@@ -137,6 +145,23 @@ export interface Database {
         Row: StoreSettings;
         Insert: { id?: number; shipping_cost?: number; free_shipping_threshold?: number; };
         Update: { id?: number; shipping_cost?: number; free_shipping_threshold?: number; };
+      };
+      admin_push_subs: {
+        Row: AdminPushSub;
+        Insert: {
+          id?: string;
+          created_at?: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+        };
+        Update: {
+          id?: string;
+          created_at?: string;
+          endpoint?: string;
+          p256dh?: string;
+          auth?: string;
+        };
       };
     };
     Views: Record<string, never>;

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import { sendNotificationToAdmins } from "./webpush"
 import type { CartItem } from "@/store/cartStore"
 
 interface PlaceOrderPayload {
@@ -129,6 +130,12 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
   revalidatePath('/admin')
   revalidatePath('/admin/orders')
   revalidatePath('/') // Revalidar el storefront para el stock
+
+  // Enviar notificación a los administradores
+  await sendNotificationToAdmins({
+    title: "¡Nuevo Pedido en El Hornerito!",
+    body: `Nuevo pedido de ${customerName.trim()} por $${total.toLocaleString('es-AR')} (${paymentMethod === 'cash' ? 'Efectivo/Transferencia' : paymentMethod})`
+  }).catch(e => console.error("Push failed inside placeOrder", e))
 
   return { success: true, orderId: order.id }
 }

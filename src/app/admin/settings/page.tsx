@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useTransition } from "react"
 import { motion } from "framer-motion"
-import { Settings, Save, Truck, PackageCheck, Loader2, CheckCircle } from "lucide-react"
+import { Settings, Save, Truck, PackageCheck, Loader2, CheckCircle, Bell, BellRing } from "lucide-react"
 import { updateStoreSettings } from "@/app/actions/settings"
+import { subscribeToPush } from "@/app/actions/webpush"
 import { createClient } from "@/lib/supabase/client"
 
 export default function SettingsPage() {
@@ -12,6 +13,7 @@ export default function SettingsPage() {
   const [isPending, startTransition] = useTransition()
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [pushSubbing, setPushSubbing] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -37,6 +39,63 @@ export default function SettingsPage() {
         alert(res.error)
       }
     })
+  }
+
+  function urlBase64ToUint8Array(base64String: string) {
+    const padding = '='.repeat((4 - base64String.length % 4) % 4)
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+    const rawData = window.atob(base64)
+    const outputArray = new Uint8Array(rawData.length)
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i)
+    }
+    return outputArray
+  }
+
+  const handleSubscribe = async () => {
+    const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    if (!publicVapidKey) {
+       alert("No hay VAPID key configurada en este entorno.")
+       return
+    }
+
+    try {
+      setPushSubbing(true)
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        alert("Tu navegador no soporta notificaciones push.")
+        setPushSubbing(false)
+        return
+      }
+
+      const permission = await Notification.requestPermission()
+      if (permission !== 'granted') {
+        alert("Permiso denegado para enviar notificaciones.")
+        setPushSubbing(false)
+        return
+      }
+
+      const registration = await navigator.serviceWorker.ready
+      let subscription = await registration.pushManager.getSubscription()
+
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+        })
+      }
+
+      const res = await subscribeToPush(subscription.toJSON())
+      if (res.success) {
+        alert("¡Notificaciones activadas correctamente en este dispositivo!")
+      } else {
+        alert("Error en el servidor: " + res.error)
+      }
+    } catch (e: any) {
+      console.error("Push sub error", e)
+      alert("Error inesperado: " + e.message)
+    } finally {
+      setPushSubbing(false)
+    }
   }
 
   if (loading) return (
@@ -100,6 +159,30 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+        </motion.div>
+
+        {/* Notificaciones Push */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="bg-[#FFF9EE] border border-[#DBC8B6] rounded-3xl p-6 shadow-sm space-y-4"
+        >
+          <div className="flex items-center gap-2.5 mb-2">
+            <Bell className="w-5 h-5 text-[#C25E3B]" />
+            <h2 className="text-lg font-black text-[#3E2723]">Notificaciones</h2>
+          </div>
+          
+          <p className="text-sm font-medium text-[#A87B6A] leading-relaxed">
+            Recibe una alerta visual en este dispositivo cada vez que ingresa un nuevo pedido.
+          </p>
+
+          <button
+            onClick={handleSubscribe}
+            disabled={pushSubbing}
+            className="w-full h-[52px] bg-[#3E2723] hover:bg-[#8A3A25] text-[#FFF9EE] font-black text-[13px] uppercase tracking-widest rounded-xl flex items-center justify-center gap-2 transition-all shadow-md disabled:opacity-60"
+          >
+            {pushSubbing ? <Loader2 className="w-4 h-4 animate-spin" /> : <BellRing className="w-4 h-4" />}
+            Activar Notificaciones
+          </button>
         </motion.div>
 
 
