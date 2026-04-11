@@ -88,13 +88,19 @@ export async function placeOrder(payload: PlaceOrderPayload): Promise<PlaceOrder
   }
 
   // 3. Insertar los order_items
-  const orderItems = items.map((item) => ({
-    order_id: order.id,
-    product_id: item.product.id,
-    product_name: item.product.name,
-    quantity: item.quantity,
-    unit_price: item.product.price,
-  }))
+  const orderItems = items.map((item) => {
+    const hasBulk = item.product.bulk_discount_qty && item.product.bulk_discount_price;
+    const appliesBulk = hasBulk && item.quantity >= item.product.bulk_discount_qty!;
+    const unitPrice = appliesBulk ? item.product.bulk_discount_price! : item.product.price;
+
+    return {
+      order_id: order.id,
+      product_id: item.product.id,
+      product_name: item.product.name,
+      quantity: item.quantity,
+      unit_price: unitPrice,
+    }
+  })
 
   const { error: itemsError } = await supabase
     .from('order_items')

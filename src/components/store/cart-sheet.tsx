@@ -291,9 +291,13 @@ export default function CartSheet({
                         </div>
                       )}
                       <AnimatePresence>
-                        {items.map((item) => (
-                          <motion.div
-                            key={item.product.id}
+                        {items.map((item) => {
+                          const hasBulk = item.product.bulk_discount_qty && item.product.bulk_discount_price;
+                          const appliesBulk = hasBulk && item.quantity >= (item.product.bulk_discount_qty as number);
+                          const currentPrice = appliesBulk ? item.product.bulk_discount_price! : item.product.price;
+                          return (
+                            <motion.div
+                              key={item.product.id}
                             layout
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -308,7 +312,14 @@ export default function CartSheet({
                             </div>
                             <div className="flex-1 min-w-0 pr-2">
                               <h3 className="font-extrabold text-[#3E2723] line-clamp-2 leading-tight text-[15px]">{item.product.name}</h3>
-                              <p className="font-black text-[#C25E3B] mt-1">${item.product.price.toLocaleString('es-AR')}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <p className="font-black text-[#C25E3B]">${currentPrice.toLocaleString('es-AR')}</p>
+                                {appliesBulk && (
+                                  <span className="text-[9px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-widest border border-green-200">
+                                    Descuento
+                                  </span>
+                                )}
+                              </div>
                               <div className="flex items-center gap-3 mt-2">
                                 <button onClick={() => updateQuantity(item.product.id, item.quantity - 1)} className="w-8 h-8 rounded-full bg-[#EAE2D0] border border-[#DBC8B6] flex items-center justify-center text-[#8A3A25] active:bg-[#DBC8B6] transition-colors">
                                   <Minus className="w-4 h-4 stroke-[3]" />
@@ -336,7 +347,7 @@ export default function CartSheet({
                               <Trash2 className="w-5 h-5 stroke-[2.5]" />
                             </button>
                           </motion.div>
-                        ))}
+                        )})}
                       </AnimatePresence>
                     </div>
 

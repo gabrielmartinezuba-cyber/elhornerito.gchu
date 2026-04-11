@@ -135,6 +135,9 @@ export default function CotizacionClient({ products }: { products: Product[] }) 
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <h3 className="font-extrabold text-[#3E2723] line-clamp-2 leading-tight text-[14px]">{product.name}</h3>
+                      {product.bulk_discount_qty && product.bulk_discount_qty > 0 && product.bulk_discount_price && product.bulk_discount_price > 0 && (
+                        <p className="text-[10px] text-green-600 font-medium leading-tight mt-0.5">Llevando {product.bulk_discount_qty} te quedan ${product.bulk_discount_price.toLocaleString('es-AR')} c/u</p>
+                      )}
                     </div>
 
                     {/* Checkbox */}

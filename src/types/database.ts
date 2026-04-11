@@ -22,6 +22,8 @@ export interface Product {
   in_stock: boolean;
   stock_quantity: number;
   is_active: boolean;
+  bulk_discount_qty?: number | null;
+  bulk_discount_price?: number | null;
 }
 
 export interface Order {
@@ -87,6 +89,8 @@ export interface Database {
           in_stock?: boolean;
           stock_quantity?: number;
           is_active?: boolean;
+          bulk_discount_qty?: number | null;
+          bulk_discount_price?: number | null;
         };
         Update: {
           id?: string;
@@ -101,6 +105,8 @@ export interface Database {
           in_stock?: boolean;
           stock_quantity?: number;
           is_active?: boolean;
+          bulk_discount_qty?: number | null;
+          bulk_discount_price?: number | null;
         };
       };
       orders: {

@@ -23,6 +23,9 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
   const [category, setCategory] = useState<Category>("Dulce")
   const [stockQty, setStockQty] = useState("0")
 
+  const [bulkQty, setBulkQty] = useState("")
+  const [bulkPrice, setBulkPrice] = useState("")
+
   const [loading, setLoading] = useState(false)
   const [compressing, setCompressing] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
@@ -36,12 +39,16 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
       setPrice(product.price.toString())
       setCategory(product.category)
       setStockQty((product.stock_quantity ?? 0).toString())
+      setBulkQty(product.bulk_discount_qty ? product.bulk_discount_qty.toString() : "")
+      setBulkPrice(product.bulk_discount_price ? product.bulk_discount_price.toString() : "")
       setPreviews(product.image_urls?.length ? product.image_urls : product.image_url ? [product.image_url] : [])
     } else {
       setName("")
       setPrice("")
       setCategory("Dulce")
       setStockQty("0")
+      setBulkQty("")
+      setBulkPrice("")
       setPreviews([])
     }
     setFiles([])
@@ -139,6 +146,8 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
         in_stock: parseInt(stockQty) > 0,
         image_url: primaryUrl,
         image_urls: imageUrls,
+        bulk_discount_qty: bulkQty ? parseInt(bulkQty) : null,
+        bulk_discount_price: bulkPrice ? parseFloat(bulkPrice) : null,
       }
 
       if (product) {
@@ -304,6 +313,28 @@ export default function ProductBottomSheet({ isOpen, onClose, onSuccess, product
                         type="number" required min="0" value={stockQty}
                         onChange={(e) => setStockQty(e.target.value)}
                         placeholder="0"
+                        className="w-full h-[60px] px-5 rounded-[20px] bg-[#FFF9EE] border border-[#DBC8B6] focus:border-[#C25E3B] focus:bg-white shadow-sm outline-none text-[#3E2723] text-[16px] font-semibold"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bulk Discount (Descuento Mayorista) */}
+                  <div className="flex gap-3">
+                    <div className="space-y-1.5 flex-1">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-[#8A3A25] pl-1">Cantidad (x)</label>
+                      <input
+                        type="number" min="0" value={bulkQty}
+                        onChange={(e) => setBulkQty(e.target.value)}
+                        placeholder="0 (Opcional)"
+                        className="w-full h-[60px] px-5 rounded-[20px] bg-[#FFF9EE] border border-[#DBC8B6] focus:border-[#C25E3B] focus:bg-white shadow-sm outline-none text-[#3E2723] text-[16px] font-semibold"
+                      />
+                    </div>
+                    <div className="space-y-1.5 flex-1">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-[#8A3A25] pl-1">Valor Unidad ($)</label>
+                      <input
+                        type="number" min="0" value={bulkPrice}
+                        onChange={(e) => setBulkPrice(e.target.value)}
+                        placeholder="0 (Opcional)"
                         className="w-full h-[60px] px-5 rounded-[20px] bg-[#FFF9EE] border border-[#DBC8B6] focus:border-[#C25E3B] focus:bg-white shadow-sm outline-none text-[#3E2723] text-[16px] font-semibold"
                       />
                     </div>

@@ -76,10 +76,12 @@ export const useCartStore = create<CartState>()(
       clearCart: () => set({ items: [] }),
       
       getTotal: () => {
-        return get().items.reduce(
-          (total, item) => total + item.product.price * item.quantity,
-          0
-        )
+        return get().items.reduce((total, item) => {
+          const hasBulk = item.product.bulk_discount_qty && item.product.bulk_discount_price;
+          const appliesBulk = hasBulk && item.quantity >= item.product.bulk_discount_qty!;
+          const price = appliesBulk ? item.product.bulk_discount_price! : item.product.price;
+          return total + price * item.quantity;
+        }, 0)
       },
       
       getTotalItems: () => {
