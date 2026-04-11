@@ -91,6 +91,7 @@ export default function CartSheet({
 
   const totalItems = mounted ? getTotalItems() : 0
   const subtotal = mounted ? getTotal() : 0
+  const totalSavings = mounted ? getTotalSavings() : 0
   const shippingCost = (deliveryMethod === 'pickup' || subtotal === 0) ? 0 : (subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST)
   const totalToPay = subtotal + shippingCost
   const remainingForFreeShipping = FREE_SHIPPING_THRESHOLD - subtotal
@@ -376,6 +377,12 @@ export default function CartSheet({
                           <span>Subtotal</span>
                           <span>${subtotal.toLocaleString('es-AR')}</span>
                         </div>
+                        {totalSavings > 0 && (
+                          <div className="flex justify-between items-center text-sm font-bold text-green-600">
+                            <span>Descuento por cantidad</span>
+                            <span>-${totalSavings.toLocaleString('es-AR')}</span>
+                          </div>
+                        )}
                         <div className="flex justify-between items-center text-sm font-bold">
                           <span className="text-[#A87B6A]">{deliveryMethod === 'pickup' ? 'Retiro en local' : 'Envío'}</span>
                           {shippingCost === 0 ? (
@@ -440,6 +447,12 @@ export default function CartSheet({
                             {shippingCost === 0 ? '¡Gratis!' : `$${shippingCost.toLocaleString('es-AR')}`}
                           </span>
                         </div>
+                        {totalSavings > 0 && (
+                          <div className="flex justify-between items-center text-sm font-bold text-green-600">
+                            <span>Descuento por cantidad</span>
+                            <span>-${totalSavings.toLocaleString('es-AR')}</span>
+                          </div>
+                        )}
                         <div className="border-t border-[#DBC8B6] pt-2 mt-2 flex justify-between">
                           <span className="font-black text-[#3E2723] uppercase tracking-wider text-sm">Total</span>
                           <span className="font-black text-[#8A3A25] text-lg">${totalToPay.toLocaleString('es-AR')}</span>

@@ -16,6 +16,7 @@ interface CartState {
   clearCart: () => void
   getTotal: () => number
   getTotalItems: () => number
+  getTotalSavings: () => number
 }
 
 export const useCartStore = create<CartState>()(
@@ -86,6 +87,18 @@ export const useCartStore = create<CartState>()(
       
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0)
+      },
+
+      getTotalSavings: () => {
+        return get().items.reduce((savings, item) => {
+          const hasBulk = item.product.bulk_discount_qty && item.product.bulk_discount_price;
+          const appliesBulk = hasBulk && item.quantity >= item.product.bulk_discount_qty!;
+          if (appliesBulk) {
+            const savingPerUnit = item.product.price - item.product.bulk_discount_price!;
+            return savings + (savingPerUnit * item.quantity);
+          }
+          return savings;
+        }, 0)
       },
     }),
     {
