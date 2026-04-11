@@ -42,6 +42,7 @@ export default function CartSheet({
   const items = useCartStore((state) => state.items)
   const getTotalItems = useCartStore((state) => state.getTotalItems)
   const getTotal = useCartStore((state) => state.getTotal)
+  const getTotalSavings = useCartStore((state) => state.getTotalSavings)
   const removeItem = useCartStore((state) => state.removeItem)
   const updateQuantity = useCartStore((state) => state.updateQuantity)
   const clearCart = useCartStore((state) => state.clearCart)
